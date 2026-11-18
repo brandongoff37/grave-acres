@@ -16,82 +16,112 @@
 <style>
 :root{--bg:#1d1a2b;--panel:#2a2540;--ink:#f2ecd9;--muted:#a69fc0;--green:#7bd36b;--gold:#ffcf4a;--red:#ff6b6b;--dirt:#6b4a2e;--dirt2:#5a3d25;--grass:#3f6b35}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 #app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 8px)}
-header{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.chip{background:var(--panel);border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:4px}
-.title{font-weight:900;font-size:18px;letter-spacing:.5px;margin-right:auto}
+.ic{width:100%;height:100%;display:block}
+.mi{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.22em}
+.mi .ic{width:100%;height:100%}
+header{display:flex;gap:6px;align-items:center}
+.chip{background:var(--panel);border-radius:999px;padding:6px 10px 6px 7px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:5px}
+.chip .mi{width:18px;height:18px}
+.title{font-weight:900;font-size:18px;letter-spacing:.5px;margin-right:auto;display:flex;align-items:center;gap:6px;min-width:0;flex:1;white-space:nowrap;overflow:hidden}
+.title .tx{overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){.title{font-size:16px}.chip{padding:5px 8px 5px 6px;font-size:13px}.title .tx{display:none}}
+.title .mi{width:26px;height:26px}
+.iconbtn{width:36px;height:36px;padding:7px;border-radius:999px}
 .xpbar{height:6px;background:#00000055;border-radius:3px;margin:8px 0 10px;overflow:hidden}
 .xpbar>div{height:100%;background:var(--green);transition:width .3s}
 nav{display:flex;gap:6px;margin-bottom:10px}
-nav button{flex:1}
+nav button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px}
+nav .mi{width:22px;height:22px}
 button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:10px;background:var(--panel);color:var(--ink);cursor:pointer}
 button.on{background:var(--green);color:#132}
 button.gold{background:var(--gold);color:#321}
+button.danger{background:var(--red);color:#300}
 button:disabled{opacity:.4}
+button:active:not(:disabled){transform:scale(.97)}
 .view{display:none;flex:1}.view.show{display:block}
+.toolbar{display:flex;gap:8px;margin-top:10px}
+.toolbar button{flex:1}
 #field{background:var(--grass);border-radius:16px;padding:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;box-shadow:inset 0 0 0 3px #00000033}
-.plot{aspect-ratio:1;border-radius:12px;background:repeating-linear-gradient(0deg,var(--dirt) 0 8px,var(--dirt2) 8px 16px);position:relative;display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;overflow:hidden}
-.plot.locked{background:#2c3f28;font-size:20px;color:#ffffff88}
-.plot .bar{position:absolute;left:6px;right:6px;bottom:6px;height:5px;background:#0006;border-radius:3px}
+.plot{aspect-ratio:1;border-radius:12px;background:repeating-linear-gradient(0deg,var(--dirt) 0 8px,var(--dirt2) 8px 16px);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;padding:0}
+.plot .art{width:78%;height:78%}
+.plot.locked{background:#2c3f28;font-size:12px;color:#ffffffaa;font-weight:700}
+.plot.locked .art{width:42%;height:42%;opacity:.7}
+.plot .bar{position:absolute;left:6px;right:6px;bottom:5px;height:5px;background:#0006;border-radius:3px}
 .plot .bar>div{height:100%;background:var(--green);border-radius:3px}
 .plot.ready{animation:bob 1s ease-in-out infinite;box-shadow:0 0 0 3px var(--gold)}
-.plot .tiny{font-size:16px;opacity:.85}
-.plot .wet{position:absolute;top:3px;right:5px;font-size:12px}
+.plot .wet{position:absolute;top:4px;right:4px;width:14px;height:14px}
 @keyframes bob{50%{transform:translateY(-3px)}}
-.hint{color:var(--muted);font-size:13px;text-align:center;margin:10px 0}
+.hint{color:var(--muted);font-size:13px;text-align:center;margin:10px 0;line-height:1.4}
 .sheet{position:fixed;inset:0;background:#0009;display:none;align-items:flex-end;justify-content:center;z-index:10}
 .sheet.show{display:flex}
-.sheet>div{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 14px calc(env(safe-area-inset-bottom) + 16px);max-height:80vh;overflow:auto}
-.sheet h3{margin:0 0 10px}
-.row{display:flex;align-items:center;gap:10px;background:#00000033;border-radius:12px;padding:10px;margin-bottom:8px}
-.row .em{font-size:30px;width:40px;text-align:center}
+.sheet>div{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 14px calc(env(safe-area-inset-bottom) + 16px);max-height:82vh;overflow:auto}
+.sheet h3{margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.sheet h3 .mi{width:28px;height:28px}
+.sheet h4{margin:12px 0 6px;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+.sheet p{color:var(--muted);line-height:1.5}
+.row{display:flex;align-items:center;gap:10px;background:#00000033;border-radius:12px;padding:8px 10px;margin-bottom:8px}
+.row .em{width:46px;height:46px;flex:none}
 .row .info{flex:1;font-size:13px;color:var(--muted)}
 .row .info b{color:var(--ink);font-size:15px;display:block}
 .row.lock{opacity:.45}
+.row button{white-space:nowrap}
 .horde{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.zcard{background:var(--panel);border-radius:12px;padding:8px 4px;text-align:center;font-size:12px}
-.zcard .e{font-size:28px}
-.zcard.mut{box-shadow:0 0 0 2px var(--gold)}
+.zcard{background:var(--panel);border-radius:12px;padding:8px 4px;text-align:center;font-size:12px;position:relative;cursor:pointer}
+.zcard .e{width:52px;height:52px;margin:0 auto 2px}
+.mut .e svg,.u.mut svg{filter:drop-shadow(0 0 4px #ffcf4a)}
+.badge{position:absolute;top:4px;right:4px;width:16px;height:16px}
 #battle{background:#151222;border-radius:16px;padding:10px}
-.side{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:56px}
-.u{width:48px;text-align:center;font-size:26px;position:relative;transition:transform .15s}
+.side{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:60px}
+.u{width:50px;text-align:center;position:relative;transition:transform .15s}
+.u .a{width:44px;height:44px;margin:0 auto}
 .u .hp{height:4px;background:#0008;border-radius:2px;margin-top:2px}
 .u .hp>div{height:100%;background:var(--green);border-radius:2px}
-.u.dead{opacity:.15}
+.foe .hp>div{background:var(--red)}
+.u.dead{opacity:.15;filter:grayscale(1)}
 .u.hit{transform:scale(.8) rotate(-8deg)}
 .vs{text-align:center;color:var(--muted);margin:8px 0;font-weight:800}
-#log{font-size:12px;color:var(--muted);height:70px;overflow:auto;margin-top:8px}
-#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 60px);transform:translateX(-50%);background:var(--gold);color:#321;font-weight:800;padding:10px 16px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;white-space:nowrap}
+#log{font-size:12px;color:var(--muted);height:84px;overflow:auto;margin-top:8px;line-height:1.45}
+.odds{font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;display:inline-block;margin-top:3px}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 60px);transform:translateX(-50%);background:var(--gold);color:#321;font-weight:800;padding:10px 16px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;max-width:92vw;text-align:center}
 #toast.show{opacity:1}
-.float{position:fixed;pointer-events:none;font-weight:900;color:var(--gold);animation:up .9s forwards;z-index:15;text-shadow:0 2px 4px #000}
+.float{position:fixed;pointer-events:none;font-weight:900;color:var(--gold);animation:up .9s forwards;z-index:15;text-shadow:0 2px 4px #000;display:flex;align-items:center;gap:3px}
+.float .mi{width:18px;height:18px}
 @keyframes up{to{transform:translateY(-40px);opacity:0}}
-small.m{color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.stats div{background:#00000033;border-radius:10px;padding:8px;font-size:13px;color:var(--muted)}
+.stats b{display:block;color:var(--ink);font-size:17px}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="title">🪦 Grave Acres</div>
-    <div class="chip">⭐ <span id="lvl">1</span></div>
-    <div class="chip">🪙 <span id="coins">0</span></div>
-    <div class="chip">🦴 <span id="bones">0</span></div>
+    <div class="title"><span class="mi" id="logo"></span><span class="tx">Grave Acres</span></div>
+    <div class="chip" aria-label="Level"><span class="mi" data-art="star"></span><span id="lvl">1</span></div>
+    <div class="chip" aria-label="Coins"><span class="mi" data-art="coin"></span><span id="coins">0</span></div>
+    <div class="chip" aria-label="Bones"><span class="mi" data-art="bone"></span><span id="bones">0</span></div>
+    <button class="iconbtn" id="menuBtn" aria-label="Menu"><span class="mi" data-art="gear" style="width:100%;height:100%"></span></button>
   </header>
-  <div class="xpbar"><div id="xp"></div></div>
+  <div class="xpbar" aria-label="Experience"><div id="xp"></div></div>
   <nav>
-    <button data-v="farm" class="on">🌱 Farm</button>
-    <button data-v="horde">🧟 Horde</button>
-    <button data-v="raid">⚔️ Raid</button>
+    <button data-v="farm" class="on"><span class="mi" data-art="sprout"></span>Farm</button>
+    <button data-v="horde"><span class="mi" data-art="shamb"></span>Horde</button>
+    <button data-v="raid"><span class="mi" data-art="swords"></span>Raid</button>
   </nav>
 
   <section class="view show" id="v-farm">
     <div id="field"></div>
-    <div class="hint">Tap a plot to plant. Tap a growing plot to water it (once, speeds it up). Tap a glowing plot to harvest.</div>
+    <div class="toolbar">
+      <button id="harvestAll" class="gold">Harvest all</button>
+    </div>
+    <div class="hint">Tap a plot to plant. Tap something growing to water it once (it grows faster). Tap a glowing plot to harvest.</div>
   </section>
 
   <section class="view" id="v-horde">
     <div class="hint" id="hordeInfo"></div>
     <div class="horde" id="hordeList"></div>
+    <div id="serumWrap"></div>
   </section>
 
   <section class="view" id="v-raid">
@@ -101,52 +131,71 @@ small.m{color:var(--muted)}
       <div class="vs" id="vsTxt">VS</div>
       <div class="side" id="mine"></div>
       <div id="log"></div>
-      <button id="battleDone" style="width:100%;margin-top:8px;display:none">Back</button>
+      <div class="toolbar">
+        <button id="skipBtn">Skip to result</button>
+        <button id="battleDone" class="gold" style="display:none">Back</button>
+      </div>
     </div>
   </section>
 </div>
 
 <div class="sheet" id="sheet"><div id="sheetBody"></div></div>
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
+<script src="art.js"></script>
 <script>
 // ---------- Data ----------
 const SEEDS = [
-  {id:'radish', type:'crop', e:'🥕', name:'Ghost Carrot', cost:5,  time:20,  sell:12,  xp:2,  lvl:1},
-  {id:'corn',   type:'crop', e:'🌽', name:'Moon Corn',    cost:12, time:45,  sell:30,  xp:4,  lvl:1},
-  {id:'pump',   type:'crop', e:'🎃', name:'Grin Gourd',   cost:25, time:90,  sell:65,  xp:7,  lvl:3},
-  {id:'egg',    type:'crop', e:'🍆', name:'Gloom Plum',   cost:45, time:180, sell:125, xp:12, lvl:5},
-  {id:'mush',   type:'crop', e:'🍄', name:'Spook Cap',    cost:80, time:300, sell:230, xp:20, lvl:7},
-  {id:'shamb',  type:'zom', e:'🧟', name:'Shambler', cost:20,  time:40,  atk:3, hp:12, xp:5,  lvl:1, sell:8},
-  {id:'sprint', type:'zom', e:'🏃', name:'Dasher',   cost:45,  time:75,  atk:5, hp:9,  xp:8,  lvl:2, sell:18},
-  {id:'brute',  type:'zom', e:'🦍', name:'Lugnut',   cost:90,  time:150, atk:6, hp:28, xp:14, lvl:4, sell:35},
-  {id:'mummy',  type:'zom', e:'🧻', name:'Wrapster', cost:140, time:220, atk:8, hp:24, xp:20, lvl:6, sell:55},
-  {id:'vamp',   type:'zom', e:'🧛', name:'Night Count', cost:220, time:320, atk:12, hp:30, xp:30, lvl:8, sell:90},
+  {id:'radish', type:'crop', name:'Ghost Carrot', cost:5,  time:20,  sell:12,  xp:2,  lvl:1},
+  {id:'corn',   type:'crop', name:'Moon Corn',    cost:12, time:45,  sell:30,  xp:4,  lvl:1},
+  {id:'pump',   type:'crop', name:'Grin Gourd',   cost:25, time:90,  sell:65,  xp:7,  lvl:3},
+  {id:'egg',    type:'crop', name:'Gloom Plum',   cost:45, time:180, sell:125, xp:12, lvl:5},
+  {id:'mush',   type:'crop', name:'Spook Cap',    cost:80, time:300, sell:230, xp:20, lvl:7},
+  {id:'shamb',  type:'zom', name:'Shambler',    cost:20,  time:40,  atk:3,  hp:12, xp:5,  lvl:1, sell:8},
+  {id:'sprint', type:'zom', name:'Dasher',      cost:45,  time:75,  atk:5,  hp:9,  xp:8,  lvl:2, sell:18},
+  {id:'brute',  type:'zom', name:'Lugnut',      cost:90,  time:150, atk:6,  hp:28, xp:14, lvl:4, sell:35},
+  {id:'mummy',  type:'zom', name:'Wrapster',    cost:140, time:220, atk:8,  hp:24, xp:20, lvl:6, sell:55},
+  {id:'vamp',   type:'zom', name:'Night Count', cost:220, time:320, atk:12, hp:30, xp:30, lvl:8, sell:90},
 ];
+const FOE_NAMES={farmer:'Farmer',farmhand:'Farmhand',dog:'Guard Dog',constable:'Constable',sheriff:'Sheriff',guard:'Town Guard',knight:'Knight',wizard:'Hedge Wizard',robot:'Scarecrow-Bot'};
 const TOWNS = [
-  {name:'Pickleton',   lvl:1, foes:[['👨‍🌾',2,10],['👨‍🌾',2,10]], coins:40,  bones:1, xp:15},
-  {name:'Hayford',     lvl:2, foes:[['👨‍🌾',2,10],['👩‍🌾',3,12],['🐕',3,8]], coins:80, bones:2, xp:25},
-  {name:'Mudbury',     lvl:3, foes:[['👮',4,16],['👩‍🌾',3,12],['👨‍🌾',2,10],['🐕',3,8]], coins:140, bones:3, xp:40},
-  {name:'Cobble Creek',lvl:5, foes:[['👮',4,18],['👮',4,18],['🤠',6,20],['🐕',3,10]], coins:220, bones:4, xp:60},
-  {name:'Fort Turnip', lvl:6, foes:[['💂',6,26],['💂',6,26],['🤠',6,22],['👮',5,18],['🐕',4,10]], coins:320, bones:6, xp:85},
-  {name:'Castle Kale', lvl:8, foes:[['🛡️',8,40],['💂',7,28],['💂',7,28],['🧙',10,22],['🤠',7,24]], coins:500, bones:10, xp:130},
-  {name:'The Capital', lvl:10,foes:[['🤖',12,60],['🛡️',9,45],['🛡️',9,45],['🧙',12,26],['💂',8,30],['💂',8,30]], coins:900, bones:20, xp:220},
+  {name:'Pickleton',   lvl:1, foes:[['farmer',2,10],['farmer',2,10]], coins:40, bones:1, xp:15},
+  {name:'Hayford',     lvl:2, foes:[['farmer',2,10],['farmhand',3,12],['dog',3,8]], coins:80, bones:2, xp:25},
+  {name:'Mudbury',     lvl:3, foes:[['constable',4,16],['farmhand',3,12],['farmer',2,10],['dog',3,8]], coins:140, bones:3, xp:40},
+  {name:'Cobble Creek',lvl:5, foes:[['constable',4,18],['constable',4,18],['sheriff',6,20],['dog',3,10]], coins:220, bones:4, xp:60},
+  {name:'Fort Turnip', lvl:6, foes:[['guard',6,26],['guard',6,26],['sheriff',6,22],['constable',5,18],['dog',4,10]], coins:320, bones:6, xp:85},
+  {name:'Castle Kale', lvl:8, foes:[['knight',8,40],['guard',7,28],['guard',7,28],['wizard',10,22],['sheriff',7,24]], coins:500, bones:10, xp:130},
+  {name:'The Capital', lvl:10,foes:[['robot',12,60],['knight',9,45],['knight',9,45],['wizard',12,26],['guard',8,30],['guard',8,30]], coins:900, bones:20, xp:220},
 ];
 const xpNeed = l => 30 + (l-1)*40 + (l-1)*(l-1)*8;
 const hordeCap = () => 6 + S.level;
 const PLOT_COST = [0,0,0,0,0,0,0,0, 60,90,130,180, 250,330,420,520, 650,800,1000,1250];
+const WATER = 1.35;          // growth speed multiplier once watered
+const CRAWL_HOME = 0.3;      // chance a fallen zombie survives a raid
+const SERUM_COST = 5;
 
 // ---------- State ----------
 const KEY='graveacres.v1';
-function fresh(){return {coins:60,bones:0,level:1,xp:0,plots:Array.from({length:20},(_,i)=>i<8?{}:null),horde:[],beaten:{},zid:1}}
-let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){} if(!S||!S.plots)S=fresh();
+function fresh(){return {coins:60,bones:0,level:1,xp:0,plots:Array.from({length:20},(_,i)=>i<8?{}:null),horde:[],beaten:{},zid:1,stats:{harvests:0,raised:0,raids:0,wins:0}}}
+let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!Array.isArray(S.plots))S=fresh();
+// migrate older saves
+S.stats=S.stats||{harvests:0,raised:0,raids:0,wins:0};
+while(S.plots.length<20)S.plots.push(null);
+S.plots=S.plots.map(p=>p&&p.seed&&!SEEDS.some(s=>s.id===p.seed)?{}:p);
+S.horde=(S.horde||[]).filter(z=>SEEDS.some(s=>s.id===z.s));
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const seed = id => SEEDS.find(s=>s.id===id);
 const $ = id => document.getElementById(id);
+const mi = k => '<span class="mi">'+art(k)+'</span>';
+const fmtN = n => n>=100000?Math.round(n/1000)+'k':n>=10000?(n/1000).toFixed(1)+'k':String(n);
+const buzz = ms => {try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
+document.querySelectorAll('[data-art]').forEach(el=>el.innerHTML=art(el.dataset.art));
+$('logo').innerHTML=art('hand');
 
 // ---------- UI helpers ----------
-let tt; function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1600)}
-function floatAt(el,txt){const r=el.getBoundingClientRect();const f=document.createElement('div');f.className='float';f.textContent=txt;f.style.left=(r.left+r.width/2-20)+'px';f.style.top=(r.top)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),900)}
+let tt; function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2000)}
+function floatAt(el,html){const r=el.getBoundingClientRect();const f=document.createElement('div');f.className='float';f.innerHTML=html;f.style.left=(r.left+r.width/2-24)+'px';f.style.top=(r.top)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),900)}
 function fmt(s){s=Math.max(0,Math.ceil(s));return s>=60?Math.floor(s/60)+'m '+(s%60)+'s':s+'s'}
 function openSheet(html){$('sheetBody').innerHTML=html;$('sheet').classList.add('show')}
 function closeSheet(){$('sheet').classList.remove('show')}
@@ -154,180 +203,225 @@ $('sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
 
 function gainXP(n){
   S.xp+=n;
-  while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;S.coins+=25*S.level;
-    const un=SEEDS.filter(s=>s.lvl===S.level).map(s=>s.e+' '+s.name);
-    toast('⭐ Level '+S.level+'!'+(un.length?' Unlocked '+un.join(', '):''));}
+  while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;const bonus=25*S.level;S.coins+=bonus;
+    const un=SEEDS.filter(s=>s.lvl===S.level).map(s=>s.name);const towns=TOWNS.filter(t=>t.lvl===S.level).map(t=>t.name);
+    toast('Level '+S.level+'! +'+bonus+' coins'+(un.length?' · New seed: '+un.join(', '):'')+(towns.length?' · New town: '+towns.join(', '):''));buzz([30,40,30]);}
 }
 function hud(){
-  $('lvl').textContent=S.level;$('coins').textContent=S.coins;$('bones').textContent=S.bones;
+  $('lvl').textContent=S.level;$('coins').textContent=fmtN(S.coins);$('bones').textContent=fmtN(S.bones);
   $('xp').style.width=(100*S.xp/xpNeed(S.level))+'%';
 }
 
 // ---------- Farm ----------
-function plotState(p){
-  if(!p||!p.seed)return 'empty';
-  const s=seed(p.seed);const el=(Date.now()-p.t)/1000*(p.w?1.35:1);
-  return el>=s.time?'ready':'grow';
-}
-function progress(p){const s=seed(p.seed);return Math.min(1,(Date.now()-p.t)/1000*(p.w?1.35:1)/s.time)}
-function remaining(p){const s=seed(p.seed);return (s.time-(Date.now()-p.t)/1000*(p.w?1.35:1))/(p.w?1.35:1)}
+const elapsed = p => (Date.now()-p.t)/1000*(p.w?WATER:1);
+function plotState(p){ if(!p||!p.seed)return 'empty'; return elapsed(p)>=seed(p.seed).time?'ready':'grow'; }
+const progress = p => Math.min(1,elapsed(p)/seed(p.seed).time);
+const remaining = p => (seed(p.seed).time-elapsed(p))/(p.w?WATER:1);
+const nextLockedIndex = () => S.plots.findIndex(p=>p===null);
 
 function renderField(){
   const f=$('field');
-  if(f.children.length!==20){f.innerHTML='';for(let i=0;i<20;i++){const d=document.createElement('div');d.className='plot';d.onclick=()=>tapPlot(i,d);f.appendChild(d)}}
+  if(f.children.length!==20){f.innerHTML='';for(let i=0;i<20;i++){const d=document.createElement('button');d.className='plot';d.onclick=()=>tapPlot(i,d);f.appendChild(d)}}
+  const nl=nextLockedIndex();
   S.plots.forEach((p,i)=>{
-    const d=f.children[i];
+    const d=f.children[i];let key,html,cls='plot',label;
     if(p===null){
-      const prev=S.plots.slice(0,i).every(x=>x!==null);
-      d.className='plot locked';d.innerHTML=prev?'🔒<br><span style="font-size:12px">🪙'+PLOT_COST[i]+'</span>':'';
-      d.style.flexDirection='column';return;
+      cls='plot locked';
+      if(i===nl){key='lock-'+S.coins;html='<div class="art">'+art('lock')+'</div>'+mi('coin')+' '+PLOT_COST[i];label='Locked plot, costs '+PLOT_COST[i]+' coins';}
+      else{key='lock';html='';label='Locked plot';}
+    }else{
+      const st=plotState(p);
+      if(st==='empty'){key='empty';html='';label='Empty plot, tap to plant';}
+      else{
+        const s=seed(p.seed);
+        if(st==='ready'){cls='plot ready';key='ready-'+s.id;html='<div class="art">'+art(s.id)+'</div>';label=s.name+' ready to harvest';}
+        else{
+          const pr=progress(p);const stage=s.type==='zom'?(pr<.5?'mound':'hand'):(pr<.5?'sprout':'sprout2');
+          key='g-'+stage+'-'+(p.w?1:0)+'-'+Math.round(pr*100);
+          html='<div class="art">'+art(stage)+'</div>'+(p.w?'<span class="wet">'+art('drop')+'</span>':'')+'<div class="bar"><div style="width:'+(pr*100)+'%"></div></div>';
+          label=s.name+' growing, '+fmt(remaining(p))+' left';
+        }
+      }
     }
-    d.style.flexDirection='';
-    const st=plotState(p);
-    if(st==='empty'){d.className='plot';d.innerHTML='';return}
-    const s=seed(p.seed);
-    if(st==='ready'){d.className='plot ready';d.innerHTML=s.e;return}
-    const pr=progress(p);
-    d.className='plot';
-    d.innerHTML=(s.type==='zom'?'<span class="tiny">'+(pr<.5?'🪦':'✋')+'</span>':'<span class="tiny">'+(pr<.5?'🌱':'🌿')+'</span>')+
-      (p.w?'<span class="wet">💧</span>':'')+'<div class="bar"><div style="width:'+(pr*100)+'%"></div></div>';
+    if(d.dataset.k!==key){d.dataset.k=key;d.className=cls;d.innerHTML=html;d.setAttribute('aria-label',label)}
   });
+  const readyN=S.plots.filter(p=>plotState(p)==='ready').length;
+  $('harvestAll').disabled=!readyN;$('harvestAll').textContent=readyN?'Harvest all ('+readyN+')':'Harvest all';
 }
 
 function tapPlot(i,el){
   const p=S.plots[i];
   if(p===null){
-    if(!S.plots.slice(0,i).every(x=>x!==null))return toast('Unlock plots in order');
+    if(i!==nextLockedIndex())return toast('Unlock plots in order');
     const c=PLOT_COST[i];
-    if(S.coins<c)return toast('Need 🪙'+c+' to clear this plot');
-    S.coins-=c;S.plots[i]={};floatAt(el,'-'+c);save();return refresh();
+    if(S.coins<c)return toast('You need '+c+' coins to clear this plot');
+    S.coins-=c;S.plots[i]={};floatAt(el,'-'+c+mi('coin'));buzz(15);save();return refresh();
   }
   const st=plotState(p);
   if(st==='empty')return seedPicker(i);
   if(st==='grow'){
     if(p.w)return toast(seed(p.seed).name+': '+fmt(remaining(p))+' left');
-    // convert progress so watering doesn't jump
-    const s=seed(p.seed);const done=(Date.now()-p.t)/1000;p.w=1;p.t=Date.now()-done/1.35*1000;
-    floatAt(el,'💧');save();return refresh();
+    const done=(Date.now()-p.t)/1000;p.w=1;p.t=Date.now()-done/WATER*1000; // keep progress where it is
+    floatAt(el,mi('drop'));buzz(10);save();return refresh();
   }
-  // harvest
-  const s=seed(p.seed);
-  if(s.type==='crop'){S.coins+=s.sell;gainXP(s.xp);floatAt(el,'+🪙'+s.sell)}
-  else{
-    if(S.horde.length>=hordeCap()){return toast('Horde full ('+hordeCap()+'). Raid or release some!')}
-    const mut=Math.random()<.15;
-    S.horde.push({id:S.zid++,s:s.id,mut});gainXP(s.xp);
-    floatAt(el,mut?'✨ Mutant!':'+1 '+s.e);
-    if(mut)toast('✨ A mutant '+s.name+' rose! +50% stats');
-  }
-  S.plots[i]={};save();refresh();
+  harvest(i,el,false);save();refresh();
 }
 
+function harvest(i,el,quiet){
+  const p=S.plots[i];const s=seed(p.seed);
+  if(s.type==='crop'){S.coins+=s.sell;gainXP(s.xp);S.stats.harvests++;el&&floatAt(el,'+'+s.sell+mi('coin'))}
+  else{
+    if(S.horde.length>=hordeCap()){if(!quiet)toast('Your horde is full ('+hordeCap()+'). Raid a town or release a zombie.');return false}
+    const mut=Math.random()<.15;
+    S.horde.push({id:S.zid++,s:s.id,mut});gainXP(s.xp);S.stats.raised++;
+    el&&floatAt(el,mut?mi('sparkle')+'Mutant!':'+1 '+mi(s.id));
+    if(mut&&!quiet)toast('A mutant '+s.name+' rose from the dirt! +50% stats');
+  }
+  S.plots[i]={};buzz(12);return true;
+}
+$('harvestAll').onclick=()=>{
+  let n=0,blocked=0;const f=$('field');
+  S.plots.forEach((p,i)=>{if(plotState(p)==='ready'){if(harvest(i,f.children[i],true))n++;else blocked++}});
+  if(blocked)toast('Harvested '+n+'. '+blocked+' zombie'+(blocked>1?'s':'')+' left in the ground — horde is full.');
+  save();refresh();
+};
+
 function seedPicker(i){
-  const rows=['crop','zom'].map(t=>'<h4 style="margin:10px 0 6px">'+(t==='crop'?'🌱 Crops (sell for coins)':'🧟 Zombie seeds (grow your horde)')+'</h4>'+
+  const empties=S.plots.filter(p=>p&&!p.seed).length;
+  const rows=['crop','zom'].map(t=>'<h4>'+(t==='crop'?'Crops — sell for coins':'Zombie seeds — grow your horde')+'</h4>'+
     SEEDS.filter(s=>s.type===t).map(s=>{
-      const lock=S.level<s.lvl;
-      return '<div class="row'+(lock?' lock':'')+'"><div class="em">'+s.e+'</div><div class="info"><b>'+s.name+'</b>'+
-        (lock?'Unlocks at level '+s.lvl:'⏱ '+fmt(s.time)+(s.type==='crop'?' · sells 🪙'+s.sell:' · ⚔️'+s.atk+' ❤️'+s.hp))+
-        '</div><button '+(lock||S.coins<s.cost?'disabled':'')+' onclick="plant('+i+',\''+s.id+'\')">🪙'+s.cost+'</button></div>'}).join('')).join('');
-  openSheet('<h3>Plant something</h3>'+rows);
+      const lock=S.level<s.lvl;const afford=S.coins>=s.cost;
+      return '<div class="row'+(lock?' lock':'')+'"><div class="em">'+art(s.id)+'</div><div class="info"><b>'+s.name+'</b>'+
+        (lock?'Unlocks at level '+s.lvl:fmt(s.time)+(s.type==='crop'?' · sells for '+s.sell+' · profit +'+(s.sell-s.cost):' · attack '+s.atk+' · health '+s.hp))+
+        (!lock&&empties>1&&S.coins>=s.cost*2?'<br><a href="#" style="color:var(--green)" onclick="event.preventDefault();plantAll(\''+s.id+'\')">Fill all empty plots</a>':'')+
+        '</div><button '+(lock||!afford?'disabled':'')+' onclick="plant('+i+',\''+s.id+'\')">'+mi('coin')+' '+s.cost+'</button></div>'}).join('')).join('');
+  openSheet('<h3>'+mi('sprout')+'Plant something</h3>'+rows);
 }
 function plant(i,id){
   const s=seed(id);if(S.coins<s.cost)return;
-  S.coins-=s.cost;S.plots[i]={seed:id,t:Date.now()};closeSheet();save();refresh();
+  S.coins-=s.cost;S.plots[i]={seed:id,t:Date.now()};closeSheet();buzz(10);save();refresh();
+}
+function plantAll(id){
+  const s=seed(id);let n=0;
+  S.plots.forEach((p,i)=>{if(p&&!p.seed&&S.coins>=s.cost){S.coins-=s.cost;S.plots[i]={seed:id,t:Date.now()};n++}});
+  closeSheet();toast('Planted '+n+' '+s.name+(n>1?'s':''));save();refresh();
 }
 
 // ---------- Horde ----------
-function zStats(z){const s=seed(z.s);const m=z.mut?1.5:1;return{atk:Math.round(s.atk*m),hp:Math.round(s.hp*m),e:s.e,name:s.name}}
+function zStats(z){const s=seed(z.s);const m=z.mut?1.5:1;return{atk:Math.round(s.atk*m),hp:Math.round(s.hp*m),name:s.name}}
+const power = list => list.reduce((a,z)=>{const s=zStats(z);return a+s.atk*2+s.hp/2},0);
 function renderHorde(){
-  $('hordeInfo').innerHTML='Horde: '+S.horde.length+' / '+hordeCap()+' · Tap a zombie to release it for coins. ✨ = mutant';
-  $('hordeList').innerHTML=S.horde.length?S.horde.map(z=>{const st=zStats(z);
-    return '<div class="zcard'+(z.mut?' mut':'')+'" onclick="releaseZ('+z.id+')"><div class="e">'+st.e+'</div>'+(z.mut?'✨':'')+st.name+'<br><small class="m">⚔️'+st.atk+' ❤️'+st.hp+'</small></div>'}).join('')
+  $('hordeInfo').innerHTML='Horde: <b style="color:var(--ink)">'+S.horde.length+' / '+hordeCap()+'</b> · Power '+Math.round(power(S.horde))+'<br>Tap a zombie to release it for coins. Glowing ones are mutants.';
+  const sorted=[...S.horde].sort((a,b)=>{const A=zStats(a),B=zStats(b);return (B.atk*2+B.hp/2)-(A.atk*2+A.hp/2)});
+  $('hordeList').innerHTML=sorted.length?sorted.map(z=>{const st=zStats(z);
+    return '<div class="zcard'+(z.mut?' mut':'')+'" onclick="releaseZ('+z.id+')">'+(z.mut?'<span class="badge">'+art('sparkle')+'</span>':'')+'<div class="e">'+art(z.s)+'</div>'+st.name+'<br><small style="color:var(--muted)">atk '+st.atk+' · hp '+st.hp+'</small></div>'}).join('')
     :'<div class="hint" style="grid-column:1/-1">No zombies yet. Plant a Shambler on the farm!</div>';
+  const plain=S.horde.filter(z=>!z.mut);
+  $('serumWrap').innerHTML='<div class="row" style="margin-top:12px"><div class="em">'+art('flask')+'</div><div class="info"><b>Mutation Serum</b>Turns a random regular zombie into a mutant (+50% stats). Earn bones by raiding.</div><button class="gold" '+(S.bones<SERUM_COST||!plain.length?'disabled':'')+' onclick="serum()">'+mi('bone')+' '+SERUM_COST+'</button></div>';
 }
 function releaseZ(id){
-  const z=S.horde.find(z=>z.id===id);const st=zStats(z);const val=seed(z.s).sell*(z.mut?2:1);
-  openSheet('<h3>'+st.e+' '+st.name+(z.mut?' ✨':'')+'</h3><p class="m" style="color:var(--muted)">Release back into the soil for 🪙'+val+'?</p>'+
-    '<div style="display:flex;gap:8px"><button style="flex:1" onclick="closeSheet()">Keep</button><button class="gold" style="flex:1" onclick="doRelease('+id+','+val+')">Release</button></div>');
+  const z=S.horde.find(z=>z.id===id);if(!z)return;const st=zStats(z);const val=seed(z.s).sell*(z.mut?2:1);
+  openSheet('<h3>'+mi(z.s)+st.name+(z.mut?' (mutant)':'')+'</h3><p>Release this zombie back into the soil for '+val+' coins?</p>'+
+    '<div class="toolbar"><button onclick="closeSheet()">Keep</button><button class="gold" onclick="doRelease('+id+','+val+')">Release</button></div>');
 }
 function doRelease(id,val){S.horde=S.horde.filter(z=>z.id!==id);S.coins+=val;closeSheet();save();refresh()}
+function serum(){const plain=S.horde.filter(z=>!z.mut);if(S.bones<SERUM_COST||!plain.length)return;const z=plain[Math.floor(Math.random()*plain.length)];z.mut=true;S.bones-=SERUM_COST;toast('Your '+seed(z.s).name+' mutated!');buzz([20,30,20]);save();refresh()}
 
 // ---------- Raids ----------
-let fighting=false;
+let fighting=false,fast=false;
+const foePower = t => t.foes.reduce((a,f)=>a+f[1]*2+f[2]/2,0);
+function odds(r){return r>=1.6?['Easy','#7bd36b','#132']:r>=1.1?['Fair','#c9e86b','#132']:r>=.8?['Risky','#ffcf4a','#321']:['Deadly','#ff6b6b','#300']}
 function renderRaid(){
   if(fighting)return;
   $('raidPick').style.display='';$('battle').style.display='none';
-  const power=S.horde.reduce((a,z)=>{const s=zStats(z);return a+s.atk*2+s.hp/2},0);
-  $('raidPick').innerHTML='<div class="hint">Your horde power: <b style="color:var(--ink)">'+Math.round(power)+'</b> · Zombies that fall in battle are lost. Bring your whole horde!</div>'+
+  const pw=power(S.horde);
+  $('raidPick').innerHTML='<div class="hint">Your horde power: <b style="color:var(--ink)">'+Math.round(pw)+'</b><br>Your whole horde attacks. Fallen zombies are usually lost, but some crawl home.</div>'+
     TOWNS.map((t,i)=>{
-      const lock=S.level<t.lvl||(i>0&&!S.beaten[i-1]);
-      const fp=t.foes.reduce((a,f)=>a+f[1]*2+f[2]/2,0);
-      return '<div class="row'+(lock?' lock':'')+'"><div class="em">'+(S.beaten[i]?'🏚️':'🏘️')+'</div><div class="info"><b>'+t.name+'</b>'+
-        (lock?(S.level<t.lvl?'Reach level '+t.lvl:'Raid the previous town first'):'Defense '+Math.round(fp)+' · '+t.foes.map(f=>f[0]).join('')+'<br>Loot 🪙'+t.coins+' 🦴'+t.bones+(S.beaten[i]?' (repeat: half coins)':''))+
-        '</div><button '+(lock||!S.horde.length?'disabled':'')+' onclick="raid('+i+')">Raid</button></div>'}).join('')+
-    '<div class="hint">🦴 Bones buy a mutation serum in the Horde tab.</div>';
+      const lock=S.level<t.lvl||(i>0&&!S.beaten[i-1]);const fp=foePower(t);const o=odds(pw/fp);
+      return '<div class="row'+(lock?' lock':'')+'"><div class="em">'+art(S.beaten[i]?'ruin':'house')+'</div><div class="info"><b>'+t.name+'</b>'+
+        (lock?(S.level<t.lvl?'Reach level '+t.lvl:'Raid '+TOWNS[i-1].name+' first'):
+          'Defense '+Math.round(fp)+' · '+t.foes.length+' defenders<br>Loot '+(S.beaten[i]?Math.round(t.coins/2)+' coins (repeat)':t.coins+' coins')+', '+t.bones+' bones'+
+          (S.horde.length?'<br><span class="odds" style="background:'+o[1]+';color:'+o[2]+'">'+o[0]+'</span>':''))+
+        '</div><button '+(lock||!S.horde.length?'disabled':'')+' onclick="raid('+i+')">Raid</button></div>'}).join('');
 }
 
-function unitHTML(u,i,side){return '<div class="u" id="'+side+i+'">'+u.e+'<div class="hp"><div style="width:'+(100*u.hp/u.max)+'%"></div></div></div>'}
+function unitHTML(u,i,side){return '<div class="u'+(side==='f'?' foe':'')+(u.mut?' mut':'')+'" id="'+side+i+'"><div class="a">'+art(u.k)+'</div><div class="hp"><div style="width:'+Math.max(0,100*u.hp/u.max)+'%"></div></div></div>'}
 function raid(ti){
-  const t=TOWNS[ti];fighting=true;
-  const mine=S.horde.map(z=>{const s=zStats(z);return{e:s.e,atk:s.atk,hp:s.hp,max:s.hp,zid:z.id,name:s.name}});
-  const foes=t.foes.map(f=>({e:f[0],atk:f[1],hp:f[2],max:f[2]}));
-  $('raidPick').style.display='none';$('battle').style.display='';$('battleDone').style.display='none';
-  $('vsTxt').textContent='⚔️ Raiding '+t.name+' ⚔️';$('log').innerHTML='';
-  const draw=()=>{$('mine').innerHTML=mine.map((u,i)=>unitHTML(u,i,'m')).join('');$('foes').innerHTML=foes.map((u,i)=>unitHTML(u,i,'f')).join('');
+  const t=TOWNS[ti];fighting=true;fast=false;S.stats.raids++;
+  const mine=S.horde.map(z=>{const s=zStats(z);return{k:z.s,atk:s.atk,hp:s.hp,max:s.hp,zid:z.id,name:s.name,mut:z.mut}});
+  const foes=t.foes.map(f=>({k:f[0],atk:f[1],hp:f[2],max:f[2],name:FOE_NAMES[f[0]]}));
+  $('raidPick').style.display='none';$('battle').style.display='';$('battleDone').style.display='none';$('skipBtn').style.display='';
+  $('vsTxt').textContent='Raiding '+t.name;$('log').innerHTML='';
+  const draw=()=>{if(fast)return;$('mine').innerHTML=mine.map((u,i)=>unitHTML(u,i,'m')).join('');$('foes').innerHTML=foes.map((u,i)=>unitHTML(u,i,'f')).join('');
     mine.forEach((u,i)=>u.hp<=0&&$('m'+i).classList.add('dead'));foes.forEach((u,i)=>u.hp<=0&&$('f'+i).classList.add('dead'))};
-  const log=s=>{const l=$('log');l.innerHTML+=s+'<br>';l.scrollTop=1e9};
+  const lines=[];const log=s=>{lines.push(s);if(!fast){const l=$('log');l.innerHTML=lines.slice(-30).join('<br>');l.scrollTop=1e9}};
   draw();
-  const alive=a=>a.filter(u=>u.hp>0);
   const queue=[];
-  // build turn order lazily
   function step(){
-    const A=alive(mine),B=alive(foes);
-    if(!A.length||!B.length)return finish(!B.length);
+    const A=mine.some(u=>u.hp>0),B=foes.some(u=>u.hp>0);
+    if(!A||!B)return finish(!B);
     if(!queue.length){mine.forEach((u,i)=>u.hp>0&&queue.push(['m',i]));foes.forEach((u,i)=>u.hp>0&&queue.push(['f',i]));queue.sort(()=>Math.random()-.5)}
     const [side,i]=queue.shift();const att=side==='m'?mine[i]:foes[i];
-    if(att.hp<=0)return step();
+    if(att.hp<=0)return next(0);
     const targets=side==='m'?foes:mine;const live=targets.map((u,j)=>[u,j]).filter(x=>x[0].hp>0);
-    if(!live.length)return step();
     const [tg,j]=live[Math.floor(Math.random()*live.length)];
-    const dmg=Math.max(1,Math.round(att.atk*(.75+Math.random()*.5)));
-    const crit=Math.random()<.1;const total=crit?dmg*2:dmg;
-    tg.hp-=total;
-    log(att.e+' hits '+tg.e+' for '+total+(crit?' 💥':'')+(tg.hp<=0?' — down!':''));
-    draw();const el=$((side==='m'?'f':'m')+j);el&&el.classList.add('hit');
-    setTimeout(step,380);
+    const crit=Math.random()<.1;const dmg=Math.max(1,Math.round(att.atk*(.75+Math.random()*.5)))*(crit?2:1);
+    tg.hp-=dmg;
+    log(att.name+' hits '+tg.name+' for '+dmg+(crit?' (critical!)':'')+(tg.hp<=0?' — down!':''));
+    draw();if(!fast){const el=$((side==='m'?'f':'m')+j);el&&el.classList.add('hit')}
+    next(380);
   }
+  function next(ms){if(fast){step()}else setTimeout(step,ms)}
   function finish(win){
-    const lost=mine.filter(u=>u.hp<=0).map(u=>u.zid);
+    const fallen=mine.filter(u=>u.hp<=0);let crawled=0;
+    const lost=fallen.filter(()=>{if(Math.random()<CRAWL_HOME){crawled++;return false}return true}).map(u=>u.zid);
     S.horde=S.horde.filter(z=>!lost.includes(z.id));
-    if(win){const c=S.beaten[ti]?Math.round(t.coins/2):t.coins;S.coins+=c;S.bones+=t.bones;gainXP(t.xp);S.beaten[ti]=1;
-      log('<b style="color:var(--green)">Victory! +🪙'+c+' +🦴'+t.bones+' +'+t.xp+'xp</b>');toast('🏆 '+t.name+' overrun!')}
+    fast=false;draw();
+    if(win){const c=S.beaten[ti]?Math.round(t.coins/2):t.coins;S.coins+=c;S.bones+=t.bones;gainXP(t.xp);S.beaten[ti]=1;S.stats.wins++;
+      log('<b style="color:var(--green)">Victory! +'+c+' coins, +'+t.bones+' bones, +'+t.xp+' XP</b>');toast(t.name+' has been overrun!');buzz([30,50,30])}
     else log('<b style="color:var(--red)">The townsfolk held them off…</b>');
-    if(lost.length)log(lost.length+' zombie'+(lost.length>1?'s':'')+' fell.');
-    fighting=false;save();hud();$('battleDone').style.display='';
+    if(lost.length)log(lost.length+' zombie'+(lost.length>1?'s':'')+' fell for good.');
+    if(crawled)log(crawled+' fallen zombie'+(crawled>1?'s':'')+' crawled back home.');
+    fighting=false;save();hud();$('battleDone').style.display='';$('skipBtn').style.display='none';
   }
   setTimeout(step,500);
 }
-$('battleDone').onclick=()=>{refresh()};
+$('skipBtn').onclick=()=>{fast=true};
+$('battleDone').onclick=()=>refresh();
 
-// Mutation serum (bones) in horde tab
-function serumBtn(){
-  const plain=S.horde.filter(z=>!z.mut);
-  return '<div class="row" style="margin-top:12px"><div class="em">🧪</div><div class="info"><b>Mutation Serum</b>Turn a random non-mutant zombie into a ✨ mutant</div><button class="gold" '+(S.bones<5||!plain.length?'disabled':'')+' onclick="serum()">🦴5</button></div>';
-}
-function serum(){const plain=S.horde.filter(z=>!z.mut);if(S.bones<5||!plain.length)return;const z=plain[Math.floor(Math.random()*plain.length)];z.mut=true;S.bones-=5;toast('✨ Your '+seed(z.s).name+' mutated!');save();refresh()}
+// ---------- Menu ----------
+$('menuBtn').onclick=()=>{
+  const st=S.stats;
+  openSheet('<h3>'+mi('gear')+'Menu</h3>'+
+    '<div class="stats"><div><b>'+st.harvests+'</b>crops harvested</div><div><b>'+st.raised+'</b>zombies raised</div><div><b>'+st.wins+' / '+st.raids+'</b>raids won</div><div><b>'+Object.keys(S.beaten).length+' / '+TOWNS.length+'</b>towns overrun</div></div>'+
+    '<h4>Install on your phone</h4><p><b style="color:var(--ink)">iPhone:</b> open in Safari → Share → Add to Home Screen.<br><b style="color:var(--ink)">Android:</b> open in Chrome → ⋮ menu → Install app.</p>'+
+    '<h4>Your save</h4><p>Your farm is saved on this device and this browser only.</p>'+
+    '<button class="danger" style="width:100%" id="resetBtn">Start a new farm</button>'+
+    '<button style="width:100%;margin-top:8px" onclick="closeSheet()">Close</button>');
+  $('resetBtn').onclick=e=>{const b=e.currentTarget;if(b.dataset.sure){S=fresh();S.seen=1;S.lastDay=today();save();closeSheet();refresh();toast('A fresh plot of land awaits.')}else{b.dataset.sure=1;b.textContent='Tap again to erase everything'}};
+};
 
 // ---------- Nav / loop ----------
 let view='farm';
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(fighting)return toast('Battle in progress!');view=b.dataset.v;
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('show',v.id==='v-'+view));refresh()});
-function refresh(){hud();if(view==='farm')renderField();if(view==='horde'){renderHorde();$('hordeList').insertAdjacentHTML('afterend','');document.getElementById('serumWrap')?.remove();$('v-horde').insertAdjacentHTML('beforeend','<div id="serumWrap">'+serumBtn()+'</div>')}if(view==='raid')renderRaid()}
-setInterval(()=>{if(view==='farm')renderField()},500);
+function refresh(){hud();if(view==='farm')renderField();if(view==='horde')renderHorde();if(view==='raid')renderRaid()}
+setInterval(()=>{if(view==='farm'&&!document.hidden)renderField()},500);
 refresh();
+
+// ---------- Welcome, daily bonus, away summary ----------
+function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+const readyOnLoad=S.plots.filter(p=>plotState(p)==='ready').length;
+if(!S.seen){
+  S.seen=1;S.lastDay=today();save();
+  setTimeout(()=>openSheet('<h3>'+mi('hand')+'Welcome to Grave Acres</h3><p>Grow spooky crops to earn coins. Plant zombie seeds to raise a horde. Then raid nearby towns for coins, bones and XP.</p><p>Level up to unlock stranger seeds — and keep an eye out for glowing mutants!</p><p>Your farm keeps growing while you\'re away.</p><button class="gold" style="width:100%" onclick="closeSheet()">Start farming</button>'),300);
+}else if(S.lastDay!==today()){
+  const bonus=20+5*S.level;S.coins+=bonus;S.lastDay=today();save();hud();
+  setTimeout(()=>openSheet('<h3>'+mi('gift')+'Daily bonus</h3><p>Welcome back! The crows left you <b style="color:var(--gold)">'+bonus+' coins</b>.'+(readyOnLoad?' '+readyOnLoad+' plot'+(readyOnLoad>1?'s are':' is')+' ready to harvest.':'')+'</p><button class="gold" style="width:100%" onclick="closeSheet()">Thanks!</button>'),300);
+}else if(readyOnLoad){setTimeout(()=>toast(readyOnLoad+' plot'+(readyOnLoad>1?'s are':' is')+' ready to harvest'),400)}
+
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
-if(!S.seen){S.seen=1;save();setTimeout(()=>openSheet('<h3>🪦 Welcome to Grave Acres</h3><p style="color:var(--muted);line-height:1.5">Grow crops to earn 🪙 coins. Plant zombie seeds to raise a horde. Then raid nearby towns for loot, bones and XP. Level up to unlock stranger seeds — and watch for ✨ mutants!</p><p style="color:var(--muted)">Your farm keeps growing while you\'re away (progress is saved on this device).</p><button class="gold" style="width:100%" onclick="closeSheet()">Start farming</button>'),300)}
 </script>
 </body>
 </html>
