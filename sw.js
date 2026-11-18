@@ -1,6 +1,6 @@
 // Offline support. The page itself is fetched fresh when online (so updates show up
 // right away) and falls back to the cache when offline. Other files are cache-first.
-const CACHE = 'grave-acres-v3';
+const CACHE = 'grave-acres-v4';
 const FILES = ['./', './index.html', './art.js', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
