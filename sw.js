@@ -1,7 +1,7 @@
 // Offline support. The page itself is fetched fresh when online (so updates show up
 // right away) and falls back to the cache when offline. Other files are cache-first.
-const CACHE = 'grave-acres-v6';
-const FILES = ['./', './index.html', './art.js?v=6', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE = 'grave-acres-v7';
+const FILES = ['./', './index.html', './art.js?v=7', './game.js?v=7', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, {cache: 'reload'})))).then(() => self.skipWaiting()));
@@ -25,7 +25,7 @@ function fromNetwork(req) {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  const isPage = req.mode === 'navigate' || /\/(index\.html|art\.js)?$/.test(new URL(req.url).pathname);
+  const isPage = req.mode === 'navigate' || /\/(index\.html|art\.js|game\.js)?$/.test(new URL(req.url).pathname);
   if (isPage) {
     e.respondWith(fromNetwork(req).catch(() => caches.match(req).then(r => r || caches.match('./index.html'))));
   } else {

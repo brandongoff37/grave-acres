@@ -113,6 +113,15 @@ const ART = {
     <path d="M21.5 49 L24 43 L28 46 L32 42 L36 46 L40 42 L43 48 L42.5 52 H22Z" fill="url(#ga-bl)" ${O}/>
     <path d="M4 61 Q32 41 60 61Z" fill="url(#ga-dt)" ${O}/><circle cx="17" cy="56" r="2" fill="#2a1a0e"/><circle cx="47" cy="56" r="2.4" fill="#2a1a0e"/><path d="M27 55 q4 -2 8 0" stroke="#2a1a0e" stroke-width="1.4" fill="none"/>`,
 
+  wilt: `<ellipse cx="32" cy="55" rx="21" ry="6.5" fill="url(#ga-dt)" ${O}/><path d="M44 56 q4 -3 8 -1 q-3 3 -8 1Z" fill="#8a6a3a" ${O2}/>
+    <path d="M30 55 C30 44 27 36 33 29 C38 24 45 27 44 35" stroke="${INK}" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M30 55 C30 44 27 36 33 29 C38 24 45 27 44 35" stroke="#9a8048" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <path d="M29.5 44 C23 42 18 46 17 51 C22 51 27 49 29.5 44Z" fill="#8a6a3a" ${O}/><path d="M31 37 C36 37 39 41 39 46 C34 45 31 42 31 37Z" fill="#a08050" ${O}/>
+    <circle cx="44" cy="39" r="6" fill="#6e5a7a" ${O}/><path d="M41 38.5 l2 1.2 M45 39.7 l2 -1.2" stroke="${INK}" stroke-width="1.3" stroke-linecap="round"/><path d="M42 42.5 q2 -1.4 4 0" stroke="${INK}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M20 22 q2 -3 4 0 M47 16 q2 -3 4 0" stroke="#a69fc0" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7"/>`,
+  torch: `<path d="M18 58 L36 30" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M18 58 L36 30" stroke="url(#ga-wd)" stroke-width="5" stroke-linecap="round"/>
+    <path d="M31.5 31 L39.5 36 L42 31.5 L34 26.5Z" fill="url(#ga-gy)" ${O}/>
+    <path d="M38 29 C30 24 31 14 37 6 C38 12 42 12 43 8 C48 14 50 24 42 30 Z" fill="url(#ga-fire)" ${O}/>
+    <path d="M39.5 26 C36 22 37 17 39.5 14 C40.5 18 43 18 43.5 16 C45 20 44 24 41.5 26Z" fill="#fff6c4"/>`,
   // ================= crops (spooky, PG) =================
   radish: `<ellipse cx="32" cy="36" rx="26" ry="27" fill="url(#ga-glow)"/>
     ${frond(30,20,22,12,9,13,5,6,'#7fd36a','#2f6e2c')}${frond(31,19,30,9,24,3,5,6,'#6fc45c','#2f6e2c')}
