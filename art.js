@@ -140,16 +140,25 @@ const ART = {
     <path d="M25 20 Q23 37 25 56 M39 20 Q41 37 39 56" stroke="#b3471a" stroke-width="1.3" fill="none" opacity=".7"/>${shine(26,24,3,6,.45,15)}
     <path d="M18 31 L25.5 23 L28 33 Z M46 31 L38.5 23 L36 33 Z" fill="url(#ga-fire)" ${O2}/><path d="M30.5 36 l1.5 -3 l1.5 3 Z" fill="url(#ga-fire)" ${O2}/>
     <path d="M15 40 Q32 56 49 40 L45.5 43.5 L42 39.5 L37.5 46 L32 41 L26.5 46 L22 39.5 L18.5 43.5 Z" fill="url(#ga-fire)" ${O2}/>`,
-  egg: `${shadow(34,61,16,2.4)}<ellipse cx="47" cy="8" rx="6" ry="3.4" fill="#c9cfe0" ${O2}/><ellipse cx="41.5" cy="9" rx="4.4" ry="2.9" fill="#dfe4f0" ${O2}/>
-    <path d="M42 13 l-1 3 M46.5 13 l-1 3" stroke="#5bb8ff" stroke-width="1.6" stroke-linecap="round"/>
-    <path d="M22 18 C14 22 13 32 17 41 C21 52 28 59 38 59 C49 59 54 50 51 40 C48 31 41 26 34 19 C30 15 26 16 22 18Z" fill="url(#ga-pu)" ${O}/>
-    <path d="M20 26 C18 33 21 42 26 48" stroke="#c9a0ee" stroke-width="2.4" fill="none" opacity=".55" stroke-linecap="round"/>${shine(23,25,2,4.5,.45,25)}
-    <path d="M19 19 L14 25 L21 23 L19 30 L25 24 L29 30 L30 22 L35 24 L32 18 Z" fill="url(#ga-lf2)" ${O}/>
-    <path d="M24 17 q-3 -8 3 -12" stroke="${INK}" stroke-width="4.2" fill="none" stroke-linecap="round"/><path d="M24 17 q-3 -8 3 -12" stroke="#5c8a3a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path d="M26.5 40.5 q4 3 8 0 M38 40.5 q4 3 8 0" stroke="#f0e6ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <path d="M27 41 l-1.6 1.7 M45.5 41 l1.6 1.7" stroke="#f0e6ff" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M32 50.5 q4.5 -3 9 0" stroke="#f0e6ff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path d="M47.5 44 q-2 4 0 6 q2 -2 0 -6Z" fill="#8fd3ff" ${O2}/>`,
+  egg: `${shadow(35,61,17,2.6)}
+    <path d="M22 18 C13 22 12 33 16 42 C20 53 28 60 38.5 60 C50 60 55 50 52 39.5 C49 30 42 25 35 18.5 C31 14.5 26.5 15.5 22 18Z" fill="url(#ga-pu)" ${O}/>
+    <path d="M43 30 C49 35 52 43 49 51" stroke="#250d3c" stroke-width="2.4" fill="none" opacity=".45" stroke-linecap="round"/>
+    <path d="M19 27 C17 34 20 43 25 49" stroke="#d6b4f5" stroke-width="2.8" fill="none" opacity=".55" stroke-linecap="round"/>
+    ${shine(22.5,26,1.8,4.2,.7,25)}<ellipse cx="44" cy="54" rx="3" ry="1.4" fill="#fff" opacity=".18" transform="rotate(-30 44 54)"/>
+    ${[[29,52],[42,47],[24,40],[46,40],[36,56]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".7" fill="#2a1040" opacity=".55"/>`).join('')}
+    <path d="M17.5 20 L11.5 27.5 L19.5 25 L17.5 33 L24.5 26.5 L28.5 33.5 L30 25 L36.5 27.5 L33 20.5 L35 16.5 L27 17.5 L24 14 L20 17.5 Z" fill="url(#ga-lf2)" ${O}/>
+    <path d="M18 24.5 L21.5 21.5 M22 28.5 L24 22.5 M28 29.5 L27 22 M33 25 L29 21" stroke="#a8e08a" stroke-width="1.1" stroke-linecap="round" opacity=".8"/>
+    <path d="M23 18.5 q-1 -2 1 -3.5 q2 1 1.5 3.5Z" fill="#3f7a2e" ${O2}/>
+    <path d="M24.5 16 q-3.5 -8 2.5 -12.5" stroke="${INK}" stroke-width="4.6" fill="none" stroke-linecap="round"/><path d="M24.5 16 q-3.5 -8 2.5 -12.5" stroke="#6a9a3e" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <path d="M26.2 4.5 l2.4 -1.4" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M23.5 36 l8.5 -3 M48.5 36 l-8.5 -3" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M23.8 41.5 Q29.2 37.4 34.6 41.5 Q29.2 46.6 23.8 41.5Z" fill="#f4ecff" ${O2}/><path d="M23.8 41.5 Q29.2 37.4 34.6 41.5" fill="#7d4aa3" stroke="${INK}" stroke-width="2.3" stroke-linecap="round"/>
+    <path d="M37.4 41.5 Q42.8 37.4 48.2 41.5 Q42.8 46.6 37.4 41.5Z" fill="#f4ecff" ${O2}/><path d="M37.4 41.5 Q42.8 37.4 48.2 41.5" fill="#7d4aa3" stroke="${INK}" stroke-width="2.3" stroke-linecap="round"/>
+    <circle cx="29.4" cy="43" r="2.2" fill="${INK}"/><circle cx="42.6" cy="43" r="2.2" fill="${INK}"/><circle cx="28.7" cy="42.3" r=".75" fill="#fff"/><circle cx="41.9" cy="42.3" r=".75" fill="#fff"/>
+    <path d="M23.9 42 l-2.2 1.6 M48.1 42 l2.2 1.6" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/>
+    ${blush(26,47.5,'#ff8fc8')}${blush(46,47.5,'#ff8fc8')}
+    <path d="M31.5 52 Q36 47.8 40.5 52 Q36 50.6 31.5 52Z" fill="#3a1030" ${O2}/>
+    <path d="M47.5 45 q-2.4 4.2 0 6.4 q2.4 -2.2 0 -6.4Z" fill="url(#ga-wa)" ${O2}/><circle cx="47" cy="49.3" r=".6" fill="#fff"/>`,
   mush: `${shadow(32,60,18,2.6)}<path d="M18 58 q3 -6 5 0 M43 58 q3 -6 5 0 M38 59 q1.6 -4 3 0" stroke="#3f8a3a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
     <path d="M23 35 Q21 50 24 57 H40 Q43 50 41 35Z" fill="url(#ga-st)" ${O}/><path d="M26 38 Q25 48 27 55" stroke="#c9b48a" stroke-width="1.2" fill="none"/>
     <path d="M7 37 Q7 9 32 9 Q57 9 57 37 Q32 42 7 37Z" fill="url(#ga-mr)" ${O}/><path d="M12 36 Q32 40 52 36" stroke="#4a1030" stroke-width="1.2" fill="none"/>
