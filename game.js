@@ -15,23 +15,23 @@ const SEEDS = [
   {id:'vamp',   type:'zom', name:'Night Count', cost:220, time:320, atk:11, hp:28, xp:30, lvl:8, sell:90, ab:{drain:.5},    abName:'Drain',  abTxt:'Heals half the damage it deals'},
 ];
 const FOES = {
-  farmer:   {name:'Farmer'},
-  farmhand: {name:'Farmhand'},
-  dog:      {name:'Guard Dog',     ab:{quick:.35}, abName:'Quick'},
-  constable:{name:'Constable',     ab:{armor:1},   abName:'Armored'},
-  sheriff:  {name:'Sheriff',       ab:{crit:.3},   abName:'Sharpshooter'},
-  guard:    {name:'Town Guard',    ab:{armor:2},   abName:'Armored'},
-  knight:   {name:'Knight',        ab:{armor:3},   abName:'Heavy armor'},
-  wizard:   {name:'Hedge Wizard',  ab:{heal:8},    abName:'Healer'},
-  robot:    {name:'Scarecrow-Bot', ab:{armor:3,cleave:1}, abName:'Armored · hits two'},
+  farmer:   {name:'Farmer',        ab:{rally:1},             abName:'Rally',        abTxt:'When knocked down, the other townsfolk get +1 attack'},
+  farmhand: {name:'Farmhand',      ab:{shield:1},            abName:'Hay Bale',     abTxt:'Blocks the first hit it takes'},
+  dog:      {name:'Guard Dog',     ab:{quick:.35},           abName:'Quick',        abTxt:'35% chance to bite twice'},
+  constable:{name:'Constable',     ab:{backup:1},            abName:'Whistle',      abTxt:'Calls in a Guard Dog the first time it drops below half health'},
+  sheriff:  {name:'Sheriff',       ab:{crit:.3},             abName:'Sharpshooter', abTxt:'30% chance of a double-damage hit'},
+  guard:    {name:'Town Guard',    ab:{taunt:.45,armor:1},   abName:'Bodyguard',    abTxt:'Often steps in to take hits meant for others; light armor'},
+  knight:   {name:'Knight',        ab:{armor:3},             abName:'Heavy Armor',  abTxt:'Takes 3 less damage from every hit'},
+  wizard:   {name:'Hedge Wizard',  ab:{heal:8},              abName:'Healer',       abTxt:'Heals badly hurt allies instead of attacking'},
+  robot:    {name:'Scarecrow-Bot', ab:{armor:3,cleave:1},    abName:'Sweep',        abTxt:'Armored, and every swing hits two zombies'},
 };
 const TOWNS = [
   {name:'Pickleton',   lvl:1, foes:[['farmer',2,11],['farmer',2,11]], coins:40, bones:1, xp:15},
   {name:'Hayford',     lvl:2, foes:[['farmer',3,12],['farmhand',3,14],['dog',3,10]], coins:85, bones:2, xp:28},
-  {name:'Mudbury',     lvl:3, foes:[['constable',4,16],['farmhand',3,14],['farmer',3,12],['dog',4,10]], coins:150, bones:3, xp:45},
-  {name:'Cobble Creek',lvl:5, foes:[['constable',5,18],['constable',5,18],['sheriff',6,22],['dog',4,12],['farmhand',4,14]], coins:240, bones:4, xp:70},
+  {name:'Mudbury',     lvl:3, foes:[['constable',4,14],['farmhand',3,12],['farmer',3,12],['dog',3,7]], coins:150, bones:3, xp:45},
+  {name:'Cobble Creek',lvl:5, foes:[['constable',5,16],['constable',4,16],['sheriff',6,20],['dog',4,12],['farmhand',4,12]], coins:240, bones:4, xp:70},
   {name:'Fort Turnip', lvl:6, foes:[['guard',6,26],['guard',6,26],['sheriff',7,22],['constable',5,20],['dog',5,12]], coins:350, bones:6, xp:100},
-  {name:'Castle Kale', lvl:8, foes:[['knight',9,42],['guard',7,30],['guard',7,30],['wizard',8,24],['sheriff',8,26]], coins:560, bones:10, xp:150},
+  {name:'Castle Kale', lvl:8, foes:[['knight',9,46],['guard',7,32],['guard',7,32],['wizard',8,26],['sheriff',9,28],['farmer',5,16]], coins:560, bones:10, xp:150},
   {name:'The Capital', lvl:10,foes:[['robot',12,58],['knight',9,40],['knight',9,40],['wizard',9,26],['guard',8,30],['guard',8,30]], coins:1000, bones:20, xp:260},
 ];
 const GOALS = [
@@ -257,7 +257,7 @@ function claimGoal(){
 
 // ================= Horde =================
 function zStats(z){const s=seed(z.s);const m=z.mut?1.5:1;return{atk:Math.round(s.atk*m),hp:Math.round(s.hp*m),name:s.name,ab:s.ab,abName:s.abName}}
-function unitPower(atk,hp,ab){ab=ab||{};return atk*2*(1+(ab.quick||0))*(1+(ab.crit||0))*(ab.cleave?1.6:1)+hp/2*(1+(ab.armor||0)*.18)+(ab.drain?atk*.6:0)+(ab.stun?atk*.8:0)+(ab.heal?ab.heal*1.2:0)}
+function unitPower(atk,hp,ab){ab=ab||{};return atk*2*(1+(ab.quick||0))*(1+(ab.crit||0))*(ab.cleave?1.6:1)+hp/2*(1+(ab.armor||0)*.18)+(ab.drain?atk*.6:0)+(ab.stun?atk*.8:0)+(ab.heal?ab.heal*1.2:0)+(ab.rally?3:0)+(ab.shield?atk*.8+2:0)+(ab.backup?12:0)+(ab.taunt?4:0)}
 const zPower = z => {const s=zStats(z);return unitPower(s.atk,s.hp,s.ab)};
 const power = list => list.reduce((a,z)=>a+zPower(z),0);
 const strongest = n => [...S.horde].sort((a,b)=>zPower(b)-zPower(a)).slice(0,n);
@@ -281,7 +281,7 @@ function serum(){const plain=S.horde.filter(z=>!z.mut);if(S.bones<SERUM_COST||!p
 // ================= Battle engine =================
 const alive = u => u.hp>0;
 function makeZ(z,i){const s=zStats(z);return{side:'m',idx:i,k:z.s,atk:s.atk,hp:s.hp,max:s.hp,zid:z.id,name:s.name,ab:s.ab||{},mut:z.mut}}
-function makeFoe(f,i,mult=1){const d=FOES[f[0]];const hp=Math.round(f[2]*mult);return{side:'f',idx:i,k:f[0],atk:Math.round(f[1]*mult),hp,max:hp,name:d.name,ab:d.ab||{}}}
+function makeFoe(f,i,mult=1){const d=FOES[f[0]];const hp=Math.round(f[2]*mult);return{side:'f',idx:i,k:f[0],atk:Math.round(f[1]*mult),hp,max:hp,name:d.name,ab:d.ab||{},scale:mult}}
 function simulate(mine,foes){
   const steps=[];const snap=()=>[mine.map(u=>u.hp),foes.map(u=>u.hp)];
   const rec=(actor,target,text,kind)=>steps.push({a:actor&&[actor.side,actor.idx],t:target&&[target.side,target.idx],text,kind,hp:snap()});
@@ -299,16 +299,25 @@ function simulate(mine,foes){
       const swings=1+(ab.quick&&Math.random()<ab.quick?1:0);
       for(let s=0;s<swings;s++){
         const live=them.filter(alive);if(!live.length)break;
-        const targets=ab.cleave?shuffle(live).slice(0,2):[pick(live)];
+        let targets=ab.cleave?shuffle(live).slice(0,2):[pick(live)];
+        if(!ab.cleave){const tank=live.find(u=>u.ab.taunt&&u!==targets[0]&&Math.random()<u.ab.taunt);if(tank){targets=[tank];rec(tank,null,tank.name+' steps in front to take the hit','info')}}
         for(const t of targets){
+          if(t.ab.shield&&!t.blocked){t.blocked=true;rec(a,t,a.name+' swings at '+t.name+' — blocked by a hay bale!','block');continue}
           const crit=Math.random()<(ab.crit||.08);
           let dmg=Math.max(1,Math.round(a.atk*(.75+Math.random()*.5))*(crit?2:1)-(t.ab.armor||0));
+          const wasAbove=t.hp>t.max/2;
           t.hp-=dmg;
           let txt=a.name+(s?' strikes again —':' hits')+' '+t.name+' for '+dmg+(crit?' (critical!)':'');
           if(ab.drain){const h=Math.min(Math.ceil(dmg*ab.drain),a.max-a.hp);if(h>0){a.hp+=h;txt+=', drains '+h}}
           if(ab.stun&&t.hp>0&&Math.random()<ab.stun){t.stunned=true;txt+=' and wraps them up'}
           if(t.hp<=0)txt+=' — down!';
           rec(a,t,txt,'hit');
+          const tside=t.side==='m'?mine:foes;
+          if(t.hp<=0&&t.ab.rally){tside.filter(alive).forEach(u=>u.atk+=t.ab.rally);if(tside.some(alive))rec(t,null,'The '+t.name+"'s rallying cry gives the others +"+t.ab.rally+' attack!','info')}
+          if(t.hp>0&&wasAbove&&t.hp<=t.max/2&&t.ab.backup&&!t.called){t.called=true;
+            const m=t.scale||1;const hp=Math.round(8*m);
+            const d={side:t.side,idx:tside.length,k:'dog',atk:Math.round(2*m),hp,max:hp,name:'Guard Dog',ab:FOES.dog.ab,summoned:true};tside.push(d);
+            rec(t,d,t.name+' blows a whistle — a Guard Dog joins the fight!','info')}
         }
       }
     }
@@ -352,7 +361,7 @@ function drawSquad(ti){
   openSheet('<h3>'+mi('swords')+'Raid '+t.name+'</h3>'+
     '<p style="margin:0">Pick up to <b style="color:var(--ink)">'+squadCap()+'</b> zombies. Squad power <b style="color:var(--ink)">'+Math.round(p)+'</b> vs defense <b style="color:var(--ink)">'+Math.round(fp)+'</b> <span class="odds" style="background:'+o[1]+';color:'+o[2]+'">'+o[0]+'</span></p>'+
     '<div class="sumrow">'+t.foes.map(f=>'<div class="s" title="'+FOES[f[0]].name+'">'+art(f[0])+'</div>').join('')+'</div>'+
-    '<p style="margin:0;font-size:12px">'+[...new Set(t.foes.map(f=>f[0]))].filter(k=>FOES[k].ab).map(k=>FOES[k].name+': '+FOES[k].abName).join(' · ')+'</p>'+
+    '<div style="font-size:12px;color:var(--muted);line-height:1.5">'+[...new Set(t.foes.map(f=>f[0]))].map(k=>'<b style="color:var(--ink)">'+FOES[k].name+'</b> <span class="ab">'+FOES[k].abName+'</span> '+FOES[k].abTxt).join('<br>')+'</div>'+
     '<div class="grid4">'+sorted.map(z=>{const st=zStats(z);const on=squadSel.includes(z.id);
       return '<div class="zcard '+(on?'sel':'off')+(z.mut?' mut':'')+'" onclick="toggleSquad('+ti+','+z.id+')">'+(z.mut?'<span class="badge">'+art('sparkle')+'</span>':'')+'<div class="e" style="width:40px;height:40px">'+art(z.s)+'</div>'+st.name+'<br><small style="color:var(--muted)">'+st.atk+' / '+st.hp+'</small></div>'}).join('')+'</div>'+
     '<div class="toolbar"><button onclick="closeSheet()">Cancel</button><button class="gold" '+(sel.length?'':'disabled')+' onclick="raid('+ti+')">Attack with '+sel.length+'</button></div>');
@@ -364,13 +373,13 @@ function toggleSquad(ti,id){
   drawSquad(ti);
 }
 
-function unitHTML(u,i,side,hp){return '<div class="u'+(side==='f'?' foe':'')+(u.mut?' mut':'')+(hp<=0?' dead':'')+'" id="'+side+i+'"><div class="a">'+art(u.k)+'</div><div class="hp"><div style="width:'+Math.max(0,100*hp/u.max)+'%"></div></div></div>'}
+function unitHTML(u,i,side,hp){if(hp===undefined)return '';return '<div class="u'+(side==='f'?' foe':'')+(u.mut?' mut':'')+(hp<=0?' dead':'')+'" id="'+side+i+'"><div class="a">'+art(u.k)+'</div><div class="hp"><div style="width:'+Math.max(0,100*hp/u.max)+'%"></div></div></div>'}
 function playBattle(title,mine,foes,result,onDone){
   fighting=true;skip=false;
   $('raidPick').style.display='none';$('battle').style.display='';$('battleDone').style.display='none';$('skipBtn').style.display='';
   $('vsTxt').textContent=title;$('log').innerHTML='';
   const draw=hp=>{$('mine').innerHTML=mine.map((u,i)=>unitHTML(u,i,'m',hp[0][i])).join('');$('foes').innerHTML=foes.map((u,i)=>unitHTML(u,i,'f',hp[1][i])).join('')};
-  draw([mine.map(u=>u.max),foes.map(u=>u.max)]);
+  draw([mine.map(u=>u.max),foes.map(u=>u.summoned?undefined:u.max)]);
   const lines=[];let k=0;
   const finish=()=>{const last=result.steps[result.steps.length-1];if(last)draw(last.hp);$('log').innerHTML=lines.slice(-30).join('<br>');fighting=false;onDone(m=>{lines.push(m);const l=$('log');l.innerHTML=lines.slice(-30).join('<br>');l.scrollTop=1e9});$('battleDone').style.display='';$('skipBtn').style.display='none'};
   (function next(){
@@ -413,6 +422,7 @@ function mobForce(){
 }
 function mobRow(){
   if(!mobUnlocked())return '';
+  if(!S.nextMob)scheduleMob();
   const left=(S.nextMob-Date.now())/1000;
   return '<div class="row" style="background:#4a1f2466"><div class="em">'+art('torch')+'</div><div class="info"><b>Torch mob</b>The towns you raid will send angry mobs to your farm. Your strongest '+squadCap()+' zombies defend. Lose, and the mob tramples crops and steals coins.<br>Next mob in about <b style="color:var(--ink)">'+fmt(left)+'</b></div></div>';
 }
