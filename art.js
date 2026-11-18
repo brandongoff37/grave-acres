@@ -1,149 +1,249 @@
-// Grave Acres — original hand-drawn SVG art. All shapes drawn on a 64x64 grid.
+// Grave Acres — original hand-drawn SVG art (v2: outlined, shaded, detailed).
+// Every piece is drawn on a 64x64 grid. Shared gradients live in one hidden <defs> block.
 (function(){
-const skin = '#f2c9a0';
-const eyesDot = (y=30, x1=25, x2=35, c='#2a1f1a') => `<circle cx="${x1}" cy="${y}" r="2" fill="${c}"/><circle cx="${x2}" cy="${y}" r="2" fill="${c}"/>`;
-const shoulders = (fill, w=22) => `<path d="M${32-w} 64 Q${34-w} 46 32 46 Q${30+w} 46 ${32+w} 64Z" fill="${fill}"/>`;
+const INK = '#1b1626';
+const O = 'stroke="'+INK+'" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"';
+const O2 = 'stroke="'+INK+'" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"';
+
+// ---------- shared gradients ----------
+const rad = (id,a,b,cx=.38,cy=.32) => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r=".75"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient>`;
+const lin = (id,a,b,vert=true) => `<linearGradient id="${id}" x1="0" y1="0" x2="${vert?0:1}" y2="${vert?1:0}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+const DEFS = `<svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+${rad('ga-zg','#b8e68f','#5a9142')}${rad('ga-zt','#a9e6c6','#4a9473')}${rad('ga-zb','#bcd0e0','#5d778e')}
+${rad('ga-mu','#fbf3dc','#bfae86')}${rad('ga-vp','#f3eefc','#a597c9')}${rad('ga-sk','#ffe2c2','#d49b6a')}
+${rad('ga-or','#ffb56a','#c2521a')}${rad('ga-or2','#e98a3e','#9c3f14')}${rad('ga-pu','#a06ac8','#371a52')}
+${rad('ga-cn','#a87af0','#43248a')}${rad('ga-gh','#ffffff','#bcb1d8')}${rad('ga-mr','#e0679e','#651c42')}
+${lin('ga-st','#fff8e8','#d5c39c',false)}${lin('ga-lf','#9be886','#3f8a3a')}${lin('ga-lf2','#7fcf6c','#2f6e2c')}
+${lin('ga-dt','#82593a','#3b2716')}${rad('ga-ts','#cdc8e0','#6b6590')}${rad('ga-gd','#fff0a6','#d08a12')}
+${lin('ga-mt','#f4f6fb','#878da3',false)}${lin('ga-mtv','#f4f6fb','#878da3')}${lin('ga-wd','#c08a52','#6b4426',false)}
+${lin('ga-bl','#6a8fd6','#28407a')}${lin('ga-rd','#ee6a5c','#922620')}${lin('ga-gr','#62b072','#285533')}
+${lin('ga-br','#a8774a','#55361c')}${lin('ga-cp','#3e305c','#120d1b')}${lin('ga-or3','#ffa055','#c4561a')}
+${lin('ga-wa','#b3e3ff','#2a84d4')}${lin('ga-cr','#fff6df','#cdbb94')}${lin('ga-gl','#e7f0ff','#9fb2d4')}
+${lin('ga-straw','#ffe58a','#c99a2e')}${lin('ga-pk','#ff7aa8','#b8325e')}${lin('ga-gy','#8d8aa3','#4b4862')}
+<radialGradient id="ga-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#e9e2ff" stop-opacity=".55"/><stop offset="1" stop-color="#e9e2ff" stop-opacity="0"/></radialGradient>
+<radialGradient id="ga-eyeY" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff9c4"/><stop offset=".6" stop-color="#ffd84a"/><stop offset="1" stop-color="#e09a1a"/></radialGradient>
+<radialGradient id="ga-eyeG" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#eaffd9"/><stop offset=".55" stop-color="#8cff5a"/><stop offset="1" stop-color="#8cff5a" stop-opacity="0"/></radialGradient>
+<radialGradient id="ga-fire" cx=".5" cy=".6" r=".6"><stop offset="0" stop-color="#fff6b0"/><stop offset=".6" stop-color="#ffc23a"/><stop offset="1" stop-color="#f07a1a"/></radialGradient>
+<radialGradient id="ga-orb" cx=".4" cy=".35" r=".6"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#8fe3ff"/><stop offset="1" stop-color="#3a8ad6"/></radialGradient>
+</defs></svg>`;
+
+// ---------- little helpers ----------
+const shadow = (cx=32,cy=60,rx=19,ry=3.2) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#000" opacity=".25"/>`;
+const shine = (cx,cy,rx,ry,op=.45,rot=-25) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#fff" opacity="${op}" transform="rotate(${rot} ${cx} ${cy})"/>`;
+const eye = (cx,cy,r,dx=0,dy=0,pupil=INK) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" ${O2}/><circle cx="${cx+dx}" cy="${cy+dy}" r="${r*.5}" fill="${pupil}"/><circle cx="${cx+dx-r*.18}" cy="${cy+dy-r*.22}" r="${r*.17}" fill="#fff"/>`;
+const dot = (cx,cy,r=1.9) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${INK}"/><circle cx="${cx-.6}" cy="${cy-.7}" r="${r*.32}" fill="#fff"/>`;
+const blush = (cx,cy,c='#ff8a8a') => `<ellipse cx="${cx}" cy="${cy}" rx="3" ry="1.8" fill="${c}" opacity=".45"/>`;
+const bust = (fill,w=22,top=46,cx=32) => `<path d="M${cx-w} 64 Q${cx-w+1} ${top} ${cx} ${top} Q${cx+w-1} ${top} ${cx+w} 64Z" fill="${fill}" ${O}/>`;
+const neck = (fill,cx=32,w=10,y=38,h=10) => `<rect x="${cx-w/2}" y="${y}" width="${w}" height="${h}" fill="${fill}" ${O2}/>`;
 
 const ART = {
-  // ---------- UI ----------
-  coin: `<circle cx="32" cy="32" r="27" fill="#d1961c"/><circle cx="32" cy="32" r="22" fill="#ffcf4a"/>
-    <path d="M23 46 V29 a9 9 0 0 1 18 0 V46 Z" fill="#d1961c"/><rect x="30.5" y="29" width="3" height="11" fill="#ffcf4a"/><rect x="27" y="32.5" width="10" height="3" fill="#ffcf4a"/>`,
-  bone: `<g transform="rotate(-35 32 32)" fill="#efe8d6"><rect x="15" y="28" width="34" height="8" rx="3"/>
-    <circle cx="14" cy="27" r="6"/><circle cx="14" cy="37" r="6"/><circle cx="50" cy="27" r="6"/><circle cx="50" cy="37" r="6"/></g>`,
-  star: `<path d="M32 5 L39.5 23.5 L59 24.5 L43.5 37 L49 56 L32 45 L15 56 L20.5 37 L5 24.5 L24.5 23.5 Z" fill="#7bd36b" stroke="#4f9a42" stroke-width="2.5" stroke-linejoin="round"/>
-    <circle cx="27" cy="31" r="2.2" fill="#1d1a2b"/><circle cx="37" cy="31" r="2.2" fill="#1d1a2b"/>`,
-  drop: `<path d="M32 7 C24 21 15 30 15 41 a17 17 0 0 0 34 0 C49 30 40 21 32 7 Z" fill="#5bb8ff"/><ellipse cx="24.5" cy="41" rx="3" ry="6.5" fill="#c4e8ff"/>`,
-  lock: `<path d="M22 29 V21 a10 10 0 0 1 20 0 V29" fill="none" stroke="#a69fc0" stroke-width="6"/><rect x="15" y="28" width="34" height="27" rx="6" fill="#a69fc0"/><circle cx="32" cy="39" r="4" fill="#2a2540"/><rect x="30.5" y="40" width="3" height="8" fill="#2a2540"/>`,
-  house: `<rect x="16" y="30" width="32" height="25" fill="#d9c39a"/><path d="M9 32 L32 11 L55 32 Z" fill="#b04a3a"/>
-    <rect x="28" y="40" width="8" height="15" fill="#6b4a2e"/><rect x="19" y="35" width="7" height="7" fill="#ffe9a0"/><rect x="38" y="35" width="7" height="7" fill="#ffe9a0"/>`,
-  ruin: `<rect x="16" y="30" width="32" height="25" fill="#8d8270"/><path d="M9 32 L27 15 L31 22 L37 16 L55 32 Z" fill="#5a5470"/>
-    <rect x="28" y="40" width="8" height="15" fill="#3a2a1e"/><rect x="19" y="35" width="7" height="7" fill="#2a2540"/><rect x="38" y="35" width="7" height="7" fill="#2a2540"/>
-    <path d="M18 37 l10 4 M37 41 l10 -4" stroke="#a0784a" stroke-width="2.5"/><path d="M44 46 l-3 4 l2 3" stroke="#5a5040" stroke-width="1.5" fill="none"/>`,
-  flask: `<rect x="25" y="5" width="14" height="6" rx="2" fill="#a0784a"/>
-    <path d="M27 11 H37 V25 L50 49 a6 6 0 0 1 -5.3 9 H19.3 a6 6 0 0 1 -5.3 -9 L27 25 Z" fill="#cfd8e8" fill-opacity=".35" stroke="#cfd8e8" stroke-width="2"/>
-    <path d="M18.5 40 H45.5 L50 49 a6 6 0 0 1 -5.3 9 H19.3 a6 6 0 0 1 -5.3 -9 Z" fill="#7bd36b"/><circle cx="27" cy="48" r="2.5" fill="#c9f5be"/><circle cx="36" cy="51" r="1.8" fill="#c9f5be"/><circle cx="33" cy="34" r="1.8" fill="#7bd36b"/>`,
-  swords: `<g stroke-linecap="round"><line x1="15" y1="49" x2="48" y2="12" stroke="#d6d9e6" stroke-width="6"/><line x1="49" y1="49" x2="16" y2="12" stroke="#d6d9e6" stroke-width="6"/>
-    <line x1="13" y1="39" x2="24" y2="50" stroke="#a0784a" stroke-width="5"/><line x1="51" y1="39" x2="40" y2="50" stroke="#a0784a" stroke-width="5"/>
-    <line x1="9" y1="55" x2="15" y2="49" stroke="#6b4a2e" stroke-width="6"/><line x1="55" y1="55" x2="49" y2="49" stroke="#6b4a2e" stroke-width="6"/></g>`,
-  gear: `<g fill="#a69fc0"><circle cx="32" cy="32" r="16"/>${[0,45,90,135,180,225,270,315].map(a=>`<rect x="28" y="6" width="8" height="12" rx="2" transform="rotate(${a} 32 32)"/>`).join('')}</g><circle cx="32" cy="32" r="7" fill="#2a2540"/>`,
-  sparkle: `<path d="M32 4 L37 27 L60 32 L37 37 L32 60 L27 37 L4 32 L27 27 Z" fill="#ffcf4a"/>`,
-  trophy: `<path d="M18 10 H46 V26 a14 14 0 0 1 -28 0 Z" fill="#ffcf4a"/><path d="M18 14 H9 a9 9 0 0 0 11 12 M46 14 H55 a9 9 0 0 1 -11 12" fill="none" stroke="#ffcf4a" stroke-width="4"/>
-    <rect x="29" y="38" width="6" height="10" fill="#d1961c"/><rect x="20" y="48" width="24" height="8" rx="2" fill="#d1961c"/>`,
-  gift: `<rect x="12" y="28" width="40" height="28" rx="3" fill="#8b6bb8"/><rect x="9" y="20" width="46" height="10" rx="3" fill="#a688d4"/><rect x="29" y="20" width="6" height="36" fill="#7bd36b"/>
-    <path d="M32 20 C24 8 14 14 22 20 Z M32 20 C40 8 50 14 42 20 Z" fill="#7bd36b"/>`,
+  // ================= UI =================
+  coin: `${shadow(32,59,17,2.6)}<circle cx="32" cy="31" r="26" fill="url(#ga-gd)" ${O}/><circle cx="32" cy="31" r="20.5" fill="none" stroke="#c07f10" stroke-width="2"/>
+    <path d="M24 45 V29 a8 8 0 0 1 16 0 V45 Z" fill="#e4a522" stroke="#a96c0c" stroke-width="1.6"/>
+    <path d="M32 29 v10 M28 33 h8" stroke="#fff3b8" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M14 22 a20 20 0 0 1 12 -10" stroke="#fff" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>`,
+  bone: `<g transform="rotate(-35 32 32)"><path d="M17 27.5 H47 a6.5 6.5 0 1 1 3 6 a6.5 6.5 0 1 1 -3 6 H17 a6.5 6.5 0 1 1 -3 -6 a6.5 6.5 0 1 1 3 -6Z" fill="url(#ga-cr)" ${O}/>
+    <path d="M19 30 H45" stroke="#fff" stroke-width="2" opacity=".7" stroke-linecap="round"/><path d="M20 37 H44" stroke="#b9a678" stroke-width="1.6" stroke-linecap="round"/></g>`,
+  star: `<path d="M32 5 L39.6 23.4 L59 24.6 L43.8 37 L49 56 L32 45.2 L15 56 L20.2 37 L5 24.6 L24.4 23.4 Z" fill="url(#ga-lf)" ${O}/>
+    <path d="M32 11 L37 23.5" stroke="#d6ffc9" stroke-width="2.4" stroke-linecap="round" opacity=".8"/>${dot(27,32,2.3)}${dot(37,32,2.3)}<path d="M28.5 38 q3.5 2.6 7 0" stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`,
+  drop: `<path d="M32 6 C24 20 14 29 14 41 a18 18 0 0 0 36 0 C50 29 40 20 32 6 Z" fill="url(#ga-wa)" ${O}/>${shine(24,40,3.2,7,.75,10)}<circle cx="27" cy="51" r="1.8" fill="#fff" opacity=".7"/>`,
+  lock: `<path d="M21 29 V21 a11 11 0 0 1 22 0 V29" fill="none" stroke="${INK}" stroke-width="8.5"/><path d="M21 29 V21 a11 11 0 0 1 22 0 V29" fill="none" stroke="#b9bdd0" stroke-width="5"/>
+    <rect x="13" y="27" width="38" height="29" rx="6" fill="url(#ga-gd)" ${O}/><path d="M17 33 h30" stroke="#fff3b8" stroke-width="2" opacity=".8" stroke-linecap="round"/>
+    <circle cx="32" cy="40" r="4.2" fill="${INK}"/><path d="M30.4 41 h3.2 l1 8 h-5.2Z" fill="${INK}"/>`,
+  house: `${shadow(32,59,24,2.6)}<rect x="44" y="12" width="6" height="12" fill="url(#ga-br)" ${O2}/>
+    <rect x="14" y="29" width="36" height="28" fill="url(#ga-cr)" ${O}/><path d="M14 36 H50 M14 43 H50 M14 50 H50" stroke="#d6c39a" stroke-width="1.2"/>
+    <path d="M8 31 L32 10 L56 31 Z" fill="url(#ga-rd)" ${O}/><path d="M16 26 L48 26 M22 20 L42 20" stroke="#7a1f1a" stroke-width="1.3" opacity=".6"/>
+    <rect x="27.5" y="40" width="9" height="17" rx="1.5" fill="url(#ga-br)" ${O2}/><circle cx="34" cy="49" r="1" fill="#ffcf4a"/>
+    <rect x="17.5" y="34" width="7" height="7" fill="#ffe9a0" ${O2}/><rect x="39.5" y="34" width="7" height="7" fill="#ffe9a0" ${O2}/><path d="M21 34 v7 M17.5 37.5 h7 M43 34 v7 M39.5 37.5 h7" stroke="${INK}" stroke-width="1"/>`,
+  ruin: `${shadow(32,59,24,2.6)}<rect x="14" y="29" width="36" height="28" fill="#9a8f7a" ${O}/><path d="M14 36 H50 M14 43 H50 M14 50 H50" stroke="#80766a" stroke-width="1.2"/>
+    <path d="M8 31 L27 14 L30 22 L35 15 L56 31 Z" fill="url(#ga-gy)" ${O}/>
+    <rect x="27.5" y="40" width="9" height="17" fill="#2a1f18" ${O2}/><path d="M28 44 l8 5" stroke="#8a5a2b" stroke-width="2.4"/>
+    <rect x="17.5" y="34" width="7" height="7" fill="#1d1a2b" ${O2}/><rect x="39.5" y="34" width="7" height="7" fill="#1d1a2b" ${O2}/>
+    <path d="M16 36 l10 4 M38 40 l10 -4" stroke="#a87a48" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M45 45 l-3 4 l2 3 l-2 3" stroke="#5a5040" stroke-width="1.4" fill="none"/>
+    <path d="M40 10 q3 -4 0 -7 M45 12 q4 -4 1 -8" stroke="#a69fc0" stroke-width="2" fill="none" opacity=".6" stroke-linecap="round"/>`,
+  flask: `${shadow(32,60,16,2.4)}<rect x="25" y="4" width="14" height="7" rx="2" fill="url(#ga-wd)" ${O2}/>
+    <path d="M27 11 H37 V25 L50.5 48.5 a6.5 6.5 0 0 1 -5.6 9.5 H19.1 a6.5 6.5 0 0 1 -5.6 -9.5 L27 25 Z" fill="#dfe8f8" fill-opacity=".28" ${O}/>
+    <path d="M18.6 39 H45.4 L50.5 48.5 a6.5 6.5 0 0 1 -5.6 9.5 H19.1 a6.5 6.5 0 0 1 -5.6 -9.5 Z" fill="url(#ga-lf)"/>
+    <path d="M18.6 39 H45.4" stroke="#d6ffc9" stroke-width="1.6"/><circle cx="26" cy="48" r="2.6" fill="#e3ffd9" opacity=".85"/><circle cx="36" cy="52" r="1.8" fill="#e3ffd9" opacity=".85"/><circle cx="33" cy="33" r="1.8" fill="#9be886"/><circle cx="30" cy="27" r="1.2" fill="#9be886"/>
+    <path d="M29.5 14 V26 L19 46" stroke="#fff" stroke-width="2" fill="none" opacity=".6" stroke-linecap="round"/>
+    <path d="M27 11 H37 V25 L50.5 48.5 a6.5 6.5 0 0 1 -5.6 9.5 H19.1 a6.5 6.5 0 0 1 -5.6 -9.5 L27 25 Z" fill="none" ${O}/>`,
+  swords: `<g ${O}><path d="M45 9 L52 6 L49 13 L22 40 L18 36 Z" fill="url(#ga-mt)"/><path d="M19 9 L12 6 L15 13 L42 40 L46 36 Z" fill="url(#ga-mt)"/>
+    <rect x="13" y="35" width="15" height="5" rx="2" fill="url(#ga-gd)" transform="rotate(45 20.5 37.5)"/><rect x="36" y="35" width="15" height="5" rx="2" fill="url(#ga-gd)" transform="rotate(-45 43.5 37.5)"/>
+    <rect x="11" y="42" width="5" height="12" rx="2" fill="url(#ga-wd)" transform="rotate(45 13.5 48)"/><rect x="48" y="42" width="5" height="12" rx="2" fill="url(#ga-wd)" transform="rotate(-45 50.5 48)"/>
+    <circle cx="8.5" cy="55.5" r="3" fill="url(#ga-gd)"/><circle cx="55.5" cy="55.5" r="3" fill="url(#ga-gd)"/></g>`,
+  gear: `<g fill="url(#ga-mtv)" ${O}><path d="${(()=>{let d='';for(let i=0;i<8;i++){const a=i*Math.PI/4,b=a+.26,c=a-.26;const p=(r,t)=>(32+r*Math.cos(t)).toFixed(1)+' '+(32+r*Math.sin(t)).toFixed(1);d+=(i?'L':'M')+p(19,c-.13)+' L'+p(26,c)+' L'+p(26,b)+' L'+p(19,b+.13)+' ';}return d+'Z'})()}"/></g>
+    <circle cx="32" cy="32" r="8" fill="#2a2540" ${O}/><path d="M20 22 a15 15 0 0 1 8 -5" stroke="#fff" stroke-width="2.4" fill="none" opacity=".7" stroke-linecap="round"/>`,
+  sparkle: `<path d="M30 3 L35 25 L57 30 L35 35 L30 57 L25 35 L3 30 L25 25 Z" fill="url(#ga-gd)" ${O}/><path d="M52 6 L54 12 L60 14 L54 16 L52 22 L50 16 L44 14 L50 12Z" fill="#fff6c4" ${O2}/>`,
+  trophy: `${shadow(32,60,16,2.4)}<path d="M18 13 H9 a9 10 0 0 0 11 14 M46 13 H55 a9 10 0 0 1 -11 14" fill="none" stroke="${INK}" stroke-width="6"/><path d="M18 13 H9 a9 10 0 0 0 11 14 M46 13 H55 a9 10 0 0 1 -11 14" fill="none" stroke="#f0b52e" stroke-width="3"/>
+    <path d="M17 8 H47 V24 a15 15 0 0 1 -30 0 Z" fill="url(#ga-gd)" ${O}/><rect x="28.5" y="38" width="7" height="10" fill="#d08a12" ${O2}/><rect x="19" y="48" width="26" height="9" rx="2" fill="url(#ga-wd)" ${O}/>
+    <rect x="25" y="51" width="14" height="3" rx="1" fill="#ffcf4a"/><path d="M22 12 V24" stroke="#fff" stroke-width="2.6" opacity=".7" stroke-linecap="round"/>`,
+  gift: `${shadow(32,59,22,2.6)}<rect x="11" y="27" width="42" height="30" rx="3" fill="url(#ga-pu)" ${O}/><rect x="8" y="19" width="48" height="11" rx="3" fill="#a07ad0" ${O}/>
+    <rect x="28.5" y="19" width="7" height="38" fill="url(#ga-lf)" ${O2}/><path d="M32 19 C24 6 12 12 21 19 Z M32 19 C40 6 52 12 43 19 Z" fill="url(#ga-lf)" ${O}/>
+    <path d="M13 23 h12" stroke="#fff" stroke-width="2" opacity=".5" stroke-linecap="round"/>`,
 
-  // ---------- Growth stages ----------
-  sprout: `<ellipse cx="32" cy="55" rx="20" ry="6" fill="#4a321e"/><path d="M32 55 C32 45 30 39 34 30" stroke="#5ea04a" stroke-width="4" fill="none"/>
-    <path d="M33 34 C40 26 51 28 51 28 C47 37 38 38 33 34Z" fill="#7bd36b"/><path d="M32 41 C24 35 15 39 15 39 C20 45 28 45 32 41Z" fill="#5ea04a"/>`,
-  sprout2: `<ellipse cx="32" cy="56" rx="22" ry="6" fill="#4a321e"/><path d="M32 56 C29 45 36 36 32 24" stroke="#5ea04a" stroke-width="4" fill="none"/>
-    <path d="M31 47 C22 43 20 33 25 31 C29 31 28 36 24 37" stroke="#5ea04a" stroke-width="3" fill="none"/>
-    <path d="M34 40 C42 32 52 35 52 35 C48 43 39 44 34 40Z" fill="#7bd36b"/>
-    <circle cx="32" cy="19" r="9" fill="#8b6bb8"/><path d="M26 13 l3 3 M38 13 l-3 3" stroke="#5a3d84" stroke-width="2"/><circle cx="29" cy="20" r="1.8" fill="#ffe066"/><circle cx="35" cy="20" r="1.8" fill="#ffe066"/>`,
-  mound: `<path d="M23 48 V28 a9 9 0 0 1 18 0 V48 Z" fill="#8d87a6"/><path d="M30 27 h4 M32 25 v8" stroke="#5f5a78" stroke-width="2"/>
-    <path d="M6 59 Q32 36 58 59Z" fill="#4a321e"/><path d="M14 56 q4 -3 8 -1 M40 54 q5 -2 9 1" stroke="#6b4a2e" stroke-width="2" fill="none"/>`,
-  hand: `<g fill="#8fc46a"><rect x="26" y="24" width="12" height="28" rx="4"/><rect x="24" y="12" width="4" height="15" rx="2"/><rect x="29" y="9" width="4" height="17" rx="2"/>
-    <rect x="34" y="11" width="4" height="16" rx="2"/><rect x="38.5" y="20" width="4" height="11" rx="2" transform="rotate(25 40 25)"/></g>
-    <path d="M27 36 h10" stroke="#5e8f45" stroke-width="2"/><path d="M6 60 Q32 40 58 60Z" fill="#4a321e"/><circle cx="18" cy="53" r="2" fill="#6b4a2e"/><circle cx="46" cy="54" r="2.5" fill="#6b4a2e"/>`,
+  // ================= growth stages =================
+  sprout: `<ellipse cx="32" cy="54" rx="21" ry="7" fill="url(#ga-dt)" ${O}/><circle cx="20" cy="53" r="1.4" fill="#2a1a0e"/><circle cx="44" cy="55" r="1.2" fill="#2a1a0e"/>
+    <path d="M32 54 C32 45 30 39 34 30" stroke="${INK}" stroke-width="5.5" fill="none" stroke-linecap="round"/><path d="M32 54 C32 45 30 39 34 30" stroke="#6fbf5a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M33.5 34 C40 25 51 27 52 27 C48 37 39 39 33.5 34Z" fill="url(#ga-lf)" ${O}/><path d="M35 33.5 C40 31 45 30 49 29" stroke="#2f6e2c" stroke-width="1" fill="none"/>
+    <path d="M31.5 41 C24 34 14 38 13 38 C18 46 27 46 31.5 41Z" fill="url(#ga-lf2)" ${O}/><path d="M30 40.5 C25 39 20 39 16 39" stroke="#1f4f1e" stroke-width="1" fill="none"/>`,
+  sprout2: `<ellipse cx="32" cy="56" rx="23" ry="6.5" fill="url(#ga-dt)" ${O}/>
+    <path d="M32 56 C29 45 36 36 32 25" stroke="${INK}" stroke-width="5.5" fill="none" stroke-linecap="round"/><path d="M32 56 C29 45 36 36 32 25" stroke="#6fbf5a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M31 48 C21 44 19 34 25 31 C30 31 28 37 24 37" stroke="${INK}" stroke-width="4.2" fill="none" stroke-linecap="round"/><path d="M31 48 C21 44 19 34 25 31 C30 31 28 37 24 37" stroke="#5ea04a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M34 41 C42 32 53 35 53 35 C49 44 39 45 34 41Z" fill="url(#ga-lf)" ${O}/>
+    <path d="M24 16 L28 21 M40 16 L36 21 M32 11 V17" stroke="#6b3fa0" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="32" cy="21" r="9.5" fill="url(#ga-pu)" ${O}/>${shine(28.5,17.5,2.6,1.6,.5)}
+    <ellipse cx="28.8" cy="22" rx="2" ry="2.4" fill="url(#ga-eyeY)"/><ellipse cx="35.2" cy="22" rx="2" ry="2.4" fill="url(#ga-eyeY)"/><circle cx="29" cy="22.4" r=".9" fill="${INK}"/><circle cx="35.4" cy="22.4" r=".9" fill="${INK}"/>`,
+  mound: `<path d="M22 49 V27 a10 10 0 0 1 20 0 V49 Z" fill="url(#ga-ts)" ${O}/><path d="M32 23 v12 M27.5 28 h9" stroke="#55507a" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M38 30 l-3 4 l2 3" stroke="#55507a" stroke-width="1.2" fill="none"/><path d="M24 47 q3 -5 6 -1 q2 -3 4 0" fill="#5ea04a" ${O2}/>${shine(26,25,2,4,.45,20)}
+    <path d="M5 60 Q32 35 59 60Z" fill="url(#ga-dt)" ${O}/><path d="M14 56 q4 -3 8 -1 M41 54 q5 -2 9 1" stroke="#2a1a0e" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="31" cy="54" r="1.6" fill="#2a1a0e"/>`,
+  hand: `<path d="M24 48 L23 37 Q22 29 26 27 L26 14 a2.3 2.3 0 0 1 4.6 0 V25 L30.8 10.5 a2.3 2.3 0 0 1 4.6 0 V25 L35.6 12.5 a2.3 2.3 0 0 1 4.6 0 V29 L42.5 23 a2.3 2.3 0 0 1 4.3 1.6 L42 39 Q41 44 40 48 Z" fill="url(#ga-zg)" ${O}/>
+    <path d="M26.8 15 h3 M31.6 11.5 h3 M36.4 13.5 h3" stroke="#e8f7d6" stroke-width="1.4" stroke-linecap="round"/><path d="M28 37 q4 2 9 0" stroke="#3f6e2e" stroke-width="1.3" fill="none"/>
+    <path d="M21.5 49 L24 43 L28 46 L32 42 L36 46 L40 42 L43 48 L42.5 52 H22Z" fill="url(#ga-bl)" ${O}/>
+    <path d="M4 61 Q32 41 60 61Z" fill="url(#ga-dt)" ${O}/><circle cx="17" cy="56" r="2" fill="#2a1a0e"/><circle cx="47" cy="56" r="2.4" fill="#2a1a0e"/><path d="M27 55 q4 -2 8 0" stroke="#2a1a0e" stroke-width="1.4" fill="none"/>`,
 
-  // ---------- Crops (spooky, friendly) ----------
-  radish: `<ellipse cx="32" cy="34" rx="22" ry="26" fill="#ffffff" fill-opacity=".07"/>
-    <path d="M26 21 Q20 7 26 4 Q27 13 31 19 Q32 5 39 5 Q35 13 37 20 Q44 10 48 13 Q42 18 39 22 Z" fill="#4fb39a"/>
-    <path d="M19 23 Q32 15 45 23 L34 57 Q32 61 30 57 Z" fill="#ece6f7"/>
-    <path d="M22 31 h5 M38 37 h4 M24 44 h4" stroke="#c4bad9" stroke-width="2" stroke-linecap="round"/>
-    <ellipse cx="28" cy="29" rx="2.6" ry="3.6" fill="#2a2540"/><ellipse cx="36" cy="29" rx="2.6" ry="3.6" fill="#2a2540"/><ellipse cx="32" cy="37" rx="2.4" ry="3" fill="#2a2540"/>`,
-  corn: `<ellipse cx="32" cy="29" rx="12" ry="21" fill="#6a3fb0"/>
-    ${[[27,14],[32,12],[37,14],[25,21],[30,20],[35,20],[39,21],[25,43],[30,45],[35,45],[39,43]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.2" fill="#9b6be0"/>`).join('')}
-    <ellipse cx="27" cy="28" rx="4" ry="4.5" fill="#ffe066"/><ellipse cx="37" cy="28" rx="4" ry="4.5" fill="#ffe066"/><circle cx="27.5" cy="29" r="2" fill="#2a1f1a"/><circle cx="37.5" cy="29" r="2" fill="#2a1f1a"/>
-    <path d="M25 37 l3 3 l4 -3 l4 3 l3 -3" stroke="#2a1f1a" stroke-width="2" fill="none" stroke-linejoin="round"/>
-    <path d="M19 58 Q11 32 25 13 Q22 36 32 59 Z" fill="#5c7a3a"/><path d="M45 58 Q53 32 39 13 Q42 36 32 59 Z" fill="#4a6630"/>`,
-  pump: `<rect x="29" y="6" width="6" height="11" rx="2" fill="#4a6630" transform="rotate(10 32 12)"/><path d="M35 10 q10 -6 14 2" stroke="#5c7a3a" stroke-width="3" fill="none"/>
-    <ellipse cx="20" cy="37" rx="13" ry="19" fill="#d9661f"/><ellipse cx="44" cy="37" rx="13" ry="19" fill="#d9661f"/><ellipse cx="32" cy="37" rx="14" ry="21" fill="#f08a38"/>
-    <path d="M19 30 L26 23 L28 32 Z M45 30 L38 23 L36 32 Z" fill="#ffd94a"/>
-    <path d="M16 40 Q32 54 48 40 L44 43 L41 39 L37 45 L32 40 L27 45 L23 39 L20 43 Z" fill="#ffd94a"/>`,
-  egg: `<path d="M30 12 q-2 -7 6 -8 q-1 6 -4 9" fill="#5c7a3a"/><path d="M33 13 q9 -6 15 0 q-8 3 -15 1" fill="#7bd36b"/>
-    <circle cx="32" cy="36" r="21" fill="#5a2e7a"/><ellipse cx="24" cy="28" rx="5" ry="7" fill="#7d4aa3"/>
-    <path d="M22 37 q4 3 8 0 M34 37 q4 3 8 0" stroke="#f0e6ff" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-    <path d="M27 46 q5 -3 10 0" stroke="#f0e6ff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <ellipse cx="46" cy="44" rx="2" ry="3" fill="#8fd3ff"/>`,
-  mush: `<rect x="23" y="34" width="18" height="22" rx="7" fill="#efe6d2"/><path d="M8 36 Q8 10 32 10 Q56 10 56 36 Z" fill="#9a3a6b"/>
-    <circle cx="20" cy="26" r="4" fill="#f4dceb"/><circle cx="34" cy="18" r="3.5" fill="#f4dceb"/><circle cx="45" cy="28" r="4.5" fill="#f4dceb"/>
-    <ellipse cx="28" cy="42" rx="2.2" ry="3" fill="#2a2540"/><ellipse cx="36" cy="42" rx="2.2" ry="3" fill="#2a2540"/><ellipse cx="32" cy="50" rx="2.5" ry="3.2" fill="#2a2540"/>`,
+  // ================= crops (spooky, PG) =================
+  radish: `<ellipse cx="32" cy="34" rx="27" ry="29" fill="url(#ga-glow)"/>
+    <path d="M27 21 Q19 8 24 3 Q27 12 31 18 Q31 4 39 4 Q35 12 37 19 Q44 9 49 11 Q43 17 39 22 Z" fill="url(#ga-lf)" ${O}/><path d="M27 18 Q24 12 25 7 M33 16 Q34 10 37 7 M38 20 Q42 15 46 13" stroke="#2f6e2c" stroke-width="1" fill="none"/>
+    <path d="M18 23 Q32 14 46 23 Q44 34 38 46 Q35 52 36 57 Q30 54 31 59 Q27 52 26 44 Q20 34 18 23Z" fill="url(#ga-gh)" ${O}/>
+    <path d="M21 31 h5 M39 36 h4 M24 43 h4" stroke="#b3a8d0" stroke-width="1.6" stroke-linecap="round"/>${shine(24,26,3,5,.8,-20)}
+    <ellipse cx="27.5" cy="30" rx="2.8" ry="3.9" fill="${INK}"/><ellipse cx="36.5" cy="30" rx="2.8" ry="3.9" fill="${INK}"/><circle cx="26.6" cy="28.6" r="1" fill="#fff"/><circle cx="35.6" cy="28.6" r="1" fill="#fff"/>
+    <ellipse cx="32" cy="38" rx="2.3" ry="3" fill="${INK}"/>${blush(23,35,'#c8a8ff')}${blush(41,35,'#c8a8ff')}`,
+  corn: `${shadow(32,60,14,2.4)}<path d="M23 7 q3 -5 9 -3 q6 -2 9 3" stroke="#d9c06a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="32" cy="29" rx="12.5" ry="21" fill="url(#ga-cn)" ${O}/>
+    ${[[27,13],[32,11.5],[37,13],[24.5,19],[29.5,18],[34.5,18],[39.5,19],[23.5,42],[28.5,44],[33.5,44],[38.5,42],[30,48.5],[35,48.5]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="2.2" ry="1.9" fill="#b48cf5" stroke="#43248a" stroke-width=".8"/><circle cx="${x-.6}" cy="${y-.6}" r=".55" fill="#fff" opacity=".8"/>`).join('')}
+    <ellipse cx="27" cy="28" rx="4.2" ry="4.8" fill="url(#ga-eyeY)" ${O2}/><ellipse cx="37" cy="28" rx="4.2" ry="4.8" fill="url(#ga-eyeY)" ${O2}/><circle cx="27.6" cy="29" r="1.9" fill="${INK}"/><circle cx="37.6" cy="29" r="1.9" fill="${INK}"/>
+    <path d="M24.5 36.5 l3 3 l4.5 -3 l4.5 3 l3 -3" stroke="${INK}" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M18.5 59 Q9 33 24 12 Q22 36 32 59 Z" fill="url(#ga-lf2)" ${O}/><path d="M45.5 59 Q55 33 40 12 Q42 36 32 59 Z" fill="url(#ga-lf)" ${O}/>
+    <path d="M17 44 Q16 32 22 22 M47 44 Q48 32 42 22" stroke="#1f4f1e" stroke-width="1" fill="none"/>`,
+  pump: `${shadow(32,59,24,3)}<path d="M33 14 q2 -9 -2 -10 l-3 1 q3 3 1 9" fill="url(#ga-wd)" ${O}/><path d="M34 9 q10 -8 16 1 q-3 1 -5 -1" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M34 9 q10 -8 16 1 q-3 1 -5 -1" stroke="#5ea04a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M47 8 q7 -3 9 3 q-5 4 -9 -3Z" fill="url(#ga-lf)" ${O2}/>
+    <ellipse cx="19" cy="37" rx="13" ry="19" fill="url(#ga-or2)" ${O}/><ellipse cx="45" cy="37" rx="13" ry="19" fill="url(#ga-or2)" ${O}/><ellipse cx="32" cy="37" rx="14.5" ry="21" fill="url(#ga-or)" ${O}/>
+    <path d="M25 20 Q23 37 25 56 M39 20 Q41 37 39 56" stroke="#b3471a" stroke-width="1.3" fill="none" opacity=".7"/>${shine(26,24,3,6,.45,15)}
+    <path d="M18 31 L25.5 23 L28 33 Z M46 31 L38.5 23 L36 33 Z" fill="url(#ga-fire)" ${O2}/><path d="M30.5 36 l1.5 -3 l1.5 3 Z" fill="url(#ga-fire)" ${O2}/>
+    <path d="M15 40 Q32 56 49 40 L45.5 43.5 L42 39.5 L37.5 46 L32 41 L26.5 46 L22 39.5 L18.5 43.5 Z" fill="url(#ga-fire)" ${O2}/>`,
+  egg: `${shadow(32,60,17,2.6)}<path d="M38 7 q5 -2 8 1 q-2 4 -7 4Z" fill="#c9cfe0" ${O2}/><ellipse cx="44" cy="6" rx="6" ry="3.5" fill="#c9cfe0" ${O2}/><ellipse cx="38" cy="7" rx="4.5" ry="3" fill="#dfe4f0" ${O2}/>
+    <path d="M40 11 l-1 3 M44 11 l-1 3" stroke="#5bb8ff" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M31 16 q-3 -6 2 -9" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M31 16 q-3 -6 2 -9" stroke="#8a5a2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M32 13 q-11 -7 -16 1 q8 4 16 -1Z" fill="url(#ga-lf)" ${O}/>
+    <circle cx="32" cy="37" r="21" fill="url(#ga-pu)" ${O}/><path d="M32 17 q-3 8 0 18" stroke="#2a1040" stroke-width="1.4" fill="none" opacity=".6"/>${shine(23,28,4.5,7,.35,20)}
+    <path d="M21.5 37 q4.5 3.4 9 0 M33.5 37 q4.5 3.4 9 0" stroke="#f0e6ff" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <path d="M22 37.5 l-1.6 1.8 M42 37.5 l1.6 1.8" stroke="#f0e6ff" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M27 47 q5 -3.4 10 0" stroke="#f0e6ff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M44 41 q-2 4 0 6 q2 -2 0 -6Z" fill="#8fd3ff" ${O2}/>`,
+  mush: `${shadow(32,60,18,2.6)}<path d="M18 58 q3 -6 5 0 M43 58 q3 -6 5 0 M38 59 q1.6 -4 3 0" stroke="#3f8a3a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M23 35 Q21 50 24 57 H40 Q43 50 41 35Z" fill="url(#ga-st)" ${O}/><path d="M26 38 Q25 48 27 55" stroke="#c9b48a" stroke-width="1.2" fill="none"/>
+    <path d="M7 37 Q7 9 32 9 Q57 9 57 37 Q32 42 7 37Z" fill="url(#ga-mr)" ${O}/><path d="M12 36 Q32 40 52 36" stroke="#4a1030" stroke-width="1.2" fill="none"/>
+    <circle cx="19" cy="26" r="4.2" fill="#fbe3ef" ${O2}/><circle cx="33" cy="17" r="3.6" fill="#fbe3ef" ${O2}/><circle cx="45.5" cy="27" r="4.8" fill="#fbe3ef" ${O2}/><circle cx="29" cy="31" r="2.2" fill="#fbe3ef" ${O2}/>
+    ${shine(16,19,2.4,4.5,.5,35)}
+    <ellipse cx="28.5" cy="43" rx="2.3" ry="3.1" fill="${INK}"/><ellipse cx="35.5" cy="43" rx="2.3" ry="3.1" fill="${INK}"/><circle cx="27.7" cy="41.8" r=".8" fill="#fff"/><circle cx="34.7" cy="41.8" r=".8" fill="#fff"/>
+    <ellipse cx="32" cy="50.5" rx="2.6" ry="3.2" fill="${INK}"/>${blush(25.5,47.5)}${blush(38.5,47.5)}`,
 
-  // ---------- Zombies ----------
-  shamb: `${shoulders('#4a6a9a')}<path d="M21 55 l4 6 l3 -5 l3 6" stroke="#2f4870" stroke-width="2" fill="none"/>
-    <rect x="27" y="40" width="10" height="8" fill="#79ad57"/><rect x="15" y="10" width="34" height="34" rx="12" fill="#8fc46a"/>
-    <path d="M15 21 Q17 8 32 8 Q47 8 49 21 L45 16 L41 20 L37 14 L32 19 L28 13 L24 19 L20 15Z" fill="#3b3a2a"/>
-    <circle cx="25" cy="27" r="5.5" fill="#fff"/><circle cx="25.5" cy="27.5" r="2.2" fill="#222"/><circle cx="39" cy="28" r="3.6" fill="#fff"/><circle cx="39" cy="28.5" r="1.6" fill="#222"/>
-    <path d="M23 37 Q32 33 41 38" stroke="#2d4a1f" stroke-width="2.6" fill="none"/><rect x="29" y="34.6" width="3.2" height="3.4" fill="#fff"/>
-    <path d="M42 13 v8 M39 15 h6 M39 18.5 h6" stroke="#2d4a1f" stroke-width="1.5"/>`,
-  sprint: `<g stroke="#a69fc0" stroke-width="3" stroke-linecap="round"><line x1="1" y1="22" x2="9" y2="22"/><line x1="3" y1="31" x2="12" y2="31"/><line x1="1" y1="40" x2="9" y2="40"/></g>
-    <path d="M12 64 Q14 46 35 46 Q56 46 58 64Z" fill="#e8772e"/><path d="M35 47 V64" stroke="#fff" stroke-width="3"/>
-    <rect x="30" y="39" width="10" height="9" fill="#62a886"/><ellipse cx="35" cy="27" rx="15" ry="17" fill="#7cc4a0"/>
-    <path d="M20 22 Q22 9 35 9 Q48 9 50 22 Z" fill="#5a3a2a"/><rect x="19" y="17" width="32" height="6" rx="2" fill="#e04a4a"/>
-    <path d="M20 19 l-9 -4 l2 6Z M20 21 l-10 3 l4 3Z" fill="#e04a4a"/>
-    <path d="M27 28 l7 -1 M38 27 l7 1" stroke="#1d1a2b" stroke-width="3" stroke-linecap="round"/>
-    <path d="M28 35 Q35 42 42 35Z" fill="#3a1a1a"/><rect x="31" y="35" width="3" height="2.5" fill="#fff"/>`,
-  brute: `<path d="M1 64 Q3 41 32 41 Q61 41 63 64Z" fill="#7a5230"/><path d="M24 43 L32 60 L40 43" fill="#c9b48a"/>
-    <path d="M32 9 C48 9 53 20 52 32 C51 42 44 47 32 47 C20 47 13 42 12 32 C11 20 16 9 32 9Z" fill="#8aa3b8"/>
-    <path d="M20 14 Q24 6 30 10 Q33 4 38 9 Q44 6 45 14" stroke="#4a3a2a" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <rect x="40" y="31" width="9" height="6" rx="2" fill="#efe8d6" transform="rotate(-15 44 34)"/>
-    <circle cx="25" cy="27" r="3" fill="#fff"/><circle cx="38" cy="27" r="3" fill="#fff"/><circle cx="25" cy="27.5" r="1.4" fill="#222"/><circle cx="38" cy="27.5" r="1.4" fill="#222"/>
-    <path d="M22 37 Q32 44 42 37" stroke="#3d5468" stroke-width="3" fill="none"/><path d="M26 38.5 l2.2 -4 l2.2 4.5Z M33.6 39 l2.2 -4.5 l2.2 4Z" fill="#fff"/>`,
-  mummy: `${shoulders('#d8cba8')}<g stroke="#b8a880" stroke-width="2.4"><path d="M14 56 L50 52"/><path d="M12 62 L52 59"/></g>
-    <path d="M48 24 q10 5 7 15" stroke="#e8dcc0" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-    <rect x="15" y="9" width="34" height="37" rx="14" fill="#e8dcc0"/>
-    <g stroke="#b8a880" stroke-width="2.6" fill="none"><path d="M15 17 L49 21"/><path d="M15 38 L49 34"/><path d="M17 44 L47 42"/></g>
-    <path d="M15 24 L49 23 L49 32 L15 33 Z" fill="#2a2540"/>
-    <ellipse cx="25" cy="28" rx="3.5" ry="3" fill="#9cff6b"/><ellipse cx="39" cy="27.5" rx="2.2" ry="1.8" fill="#9cff6b"/>`,
-  vamp: `<path d="M3 64 L9 33 L22 46 H42 L55 33 L61 64Z" fill="#2a1f3d"/><path d="M14 40 L22 48 H42 L50 40 L48 64 H16Z" fill="#9b2335"/>
-    <path d="M25 47 L32 61 L39 47Z" fill="#f4f0ff"/><rect x="28" y="39" width="8" height="9" fill="#c9bfe0"/>
-    <ellipse cx="32" cy="27" rx="14" ry="17" fill="#d9d0ee"/>
-    <path d="M17 26 Q15 9 32 9 Q49 9 47 26 Q44 15 32 22 Q20 15 17 26Z" fill="#1a1426"/>
-    <path d="M22 25 l7 2 M42 25 l-7 2" stroke="#1a1426" stroke-width="2.2" stroke-linecap="round"/>
-    <ellipse cx="26" cy="30" rx="3" ry="2.3" fill="#e04a4a"/><ellipse cx="38" cy="30" rx="3" ry="2.3" fill="#e04a4a"/>
-    <path d="M27 37 Q32 40.5 37 37" stroke="#5a3a6a" stroke-width="2" fill="none"/><path d="M28.6 38.2 l1.2 3.4 l1.2 -2.6Z M33 38.8 l1.2 2.8 l1.2 -3.4Z" fill="#fff"/>`,
+  // ================= zombies =================
+  shamb: `${bust('url(#ga-bl)')}<path d="M24 46 L32 53 L40 46" fill="#3a5ea8" ${O2}/><path d="M16 64 l3 -6 l3 4 l3 -5 l2 7" fill="#1d1a2b" opacity=".35"/>
+    <rect x="42" y="53" width="7" height="6" fill="#c9a54a" ${O2} transform="rotate(8 45 56)"/><path d="M43 55 h5 M43 57.5 h5" stroke="#8a6a20" stroke-width=".8" transform="rotate(8 45 56)"/>
+    ${neck('#7fb35d')}<ellipse cx="14.5" cy="29" rx="3" ry="4.5" fill="#86bd63" ${O2}/><ellipse cx="49.5" cy="29" rx="3" ry="4.5" fill="#86bd63" ${O2}/>
+    <rect x="15" y="10" width="34" height="35" rx="13" fill="url(#ga-zg)" ${O}/>
+    <path d="M15 22 Q16 7 32 7 Q48 7 49 22 L45.5 15.5 L42 21 L38 13 L33.5 19.5 L29 12 L25 19.5 L21 14 L18 21Z" fill="#3b3a2a" ${O2}/>
+    <ellipse cx="25" cy="32" rx="6" ry="3" fill="#5a8a42" opacity=".5"/>${eye(25,28,5.6,.6,.6)}${eye(39.5,28.5,3.8,-.4,.6)}
+    <path d="M22.5 38.5 Q32 34 41.5 39" stroke="${INK}" stroke-width="2.4" fill="none"/><path d="M28.5 36.6 l3.2 -.6 l.2 3.4 l-3 .2Z" fill="#fff" ${O2}/>
+    <path d="M41.5 13.5 v8.5 M38.5 15.5 h6 M38.5 19 h6" stroke="${INK}" stroke-width="1.3"/>${blush(19.5,35,'#4f7e3a')}`,
+  sprint: `<g stroke="#a69fc0" stroke-width="2.6" stroke-linecap="round" opacity=".8"><line x1="1" y1="22" x2="9" y2="22"/><line x1="3" y1="31" x2="11" y2="31"/><line x1="1" y1="40" x2="8" y2="40"/></g>
+    ${bust('url(#ga-or3)',22,46,35)}<path d="M15 53 Q22 48 26 47 M55 53 Q48 48 44 47" stroke="#fff" stroke-width="2.4" fill="none"/><path d="M35 47 V64" stroke="${INK}" stroke-width="1.4"/><path d="M33 47 h4" stroke="#d6d9e6" stroke-width="3"/>
+    ${neck('#62a886',35)}<ellipse cx="35" cy="27" rx="15.5" ry="17" fill="url(#ga-zt)" ${O}/>
+    <path d="M19.5 22 Q20 7 35 7.5 Q50 8 50.5 22 L46 14 L42 19 L38 11.5 L34 18 L30 11.5 L26 18 L22.5 13Z" fill="#6a3f26" ${O2}/>
+    <rect x="19" y="17" width="32.5" height="6.5" rx="2.5" fill="url(#ga-rd)" ${O2}/><path d="M20 19.5 l-10 -5 l2.2 7Z M20 21.5 l-11 3 l4.5 3.4Z" fill="url(#ga-rd)" ${O2}/>
+    <path d="M25 26.5 l8 -1.5 M38 25 l8 1.5" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>${eye(29.5,29.5,3.4,1,.4)}${eye(41,29.5,3.4,1,.4)}
+    <path d="M27.5 35.5 Q35 43 43 35.5Z" fill="#4a1a1a" ${O2}/><path d="M29.5 35.8 h12" stroke="#fff" stroke-width="2"/>
+    <path d="M50.5 26 q2 3 0 5 q-2 -2 0 -5Z" fill="#8fd3ff" ${O2}/>`,
+  brute: `<path d="M1 64 Q2 40 32 40 Q62 40 63 64Z" fill="url(#ga-br)" ${O}/><path d="M23 41 L32 61 L41 41Z" fill="url(#ga-cr)" ${O2}/><circle cx="32" cy="50" r="1.2" fill="${INK}"/><circle cx="32" cy="56" r="1.2" fill="${INK}"/>
+    <path d="M8 52 q5 -2 8 2 M48 54 q4 -4 8 -2" stroke="#3b2414" stroke-width="1.4" fill="none"/>
+    <ellipse cx="12.5" cy="30" rx="3.2" ry="5" fill="#8aa3b8" ${O2}/><ellipse cx="51.5" cy="30" rx="3.2" ry="5" fill="#8aa3b8" ${O2}/>
+    <path d="M32 8.5 C48.5 8.5 53.5 20 52.5 32 C51.5 42.5 44 47.5 32 47.5 C20 47.5 12.5 42.5 11.5 32 C10.5 20 15.5 8.5 32 8.5Z" fill="url(#ga-zb)" ${O}/>
+    <path d="M18 15 Q22 4 29 9.5 Q33 2.5 38.5 8.5 Q45 5 46.5 15 Q41 11 37 13 Q32 9 27 13 Q22 11 18 15Z" fill="#4a3a2a" ${O2}/>
+    <path d="M21.5 23.5 l6 1.5 M42.5 23.5 l-6 1.5" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>${eye(25.5,28,3,.3,.4)}${eye(38.5,28,3,-.3,.4)}
+    <path d="M20 36.5 Q32 44.5 44 36.5" stroke="${INK}" stroke-width="2.6" fill="none"/><path d="M25.5 38.6 l2.4 -5 l2.2 5.6Z M33.9 39.2 l2.2 -5.6 l2.4 5Z" fill="#fff" ${O2}/>
+    <rect x="40" y="30.5" width="10" height="6.5" rx="2" fill="url(#ga-cr)" ${O2} transform="rotate(-15 45 34)"/><path d="M43 32 l3.5 3.5 M46.5 32 l-3.5 3.5" stroke="#b9a678" stroke-width="1" transform="rotate(-15 45 34)"/>
+    <path d="M18 31 l3 2 M18 34 l3 1" stroke="#51687c" stroke-width="1.3" stroke-linecap="round"/>`,
+  mummy: `${bust('url(#ga-mu)')}<g stroke="#a8976e" stroke-width="2" fill="none"><path d="M13 55 L51 50"/><path d="M11 61 L53 58"/><path d="M20 49 L44 53"/></g>
+    <path d="M48.5 24 q11 4 8 16 q-2 4 -5 3" stroke="${INK}" stroke-width="6.2" fill="none" stroke-linecap="round"/><path d="M48.5 24 q11 4 8 16 q-2 4 -5 3" stroke="#efe4c6" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+    <rect x="15" y="9" width="34" height="38" rx="14.5" fill="url(#ga-mu)" ${O}/>
+    <g stroke="#a8976e" stroke-width="2.2" fill="none" stroke-linecap="round"><path d="M16 16 L48 20.5"/><path d="M15.5 39 L48.5 34.5"/><path d="M18 44.5 L46 42.5"/><path d="M22 11.5 L44 14"/></g>
+    <path d="M15.2 24 L48.8 22.6 L48.8 32.4 L15.2 33.4 Z" fill="#241d33" ${O2}/>
+    <circle cx="25" cy="28.3" r="5.5" fill="url(#ga-eyeG)"/><circle cx="39.5" cy="27.6" r="4" fill="url(#ga-eyeG)"/><circle cx="25" cy="28.3" r="1.6" fill="#f0ffe6"/><circle cx="39.5" cy="27.6" r="1.1" fill="#f0ffe6"/>
+    ${shine(21,14,4,2,.6,5)}`,
+  vamp: `<path d="M2 64 L8 31 L22 46 H42 L56 31 L62 64Z" fill="url(#ga-cp)" ${O}/><path d="M13.5 39.5 L22 48 H42 L50.5 39.5 L48 64 H16Z" fill="url(#ga-rd)" ${O2}/>
+    <path d="M25 47 L32 62 L39 47Z" fill="#f6f3ff" ${O2}/><path d="M28.5 48.5 L32 52 L35.5 48.5" fill="#9b2335" ${O2}/><circle cx="32" cy="55" r="2" fill="url(#ga-rd)" ${O2}/>
+    ${neck('#c9bfe0',32,8,38,10)}<path d="M18.5 27 L13 20 L19 25Z M45.5 27 L51 20 L45 25Z" fill="url(#ga-vp)" ${O2}/>
+    <ellipse cx="32" cy="27" rx="14.2" ry="17" fill="url(#ga-vp)" ${O}/>
+    <path d="M17.3 26 Q15 8.5 32 8.5 Q49 8.5 46.7 26 Q44 15 32 22.5 Q20 15 17.3 26Z" fill="#1a1426" ${O2}/><path d="M24 12.5 q5 -2.5 10 -1" stroke="#5a4a80" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M21.5 25.5 l7 2.2 M42.5 25.5 l-7 2.2" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>
+    <ellipse cx="26" cy="30.5" rx="3.2" ry="2.4" fill="#ff5a5a" ${O2}/><ellipse cx="38" cy="30.5" rx="3.2" ry="2.4" fill="#ff5a5a" ${O2}/><circle cx="26" cy="30.5" r="1" fill="${INK}"/><circle cx="38" cy="30.5" r="1" fill="${INK}"/>
+    <path d="M26.5 37 Q32 40.5 38 36.5" stroke="${INK}" stroke-width="1.8" fill="none"/><path d="M28.4 38.1 l1.3 3.6 l1.3 -2.8Z M33.4 38.6 l1.3 2.9 l1.3 -3.6Z" fill="#fff" ${O2}/>`,
 
-  // ---------- Townsfolk ----------
-  farmer: `<line x1="55" y1="64" x2="55" y2="16" stroke="#8a5a2b" stroke-width="3"/><path d="M49 19 V8 M55 19 V6 M61 19 V8 M49 19 H61" stroke="#b8bcc8" stroke-width="2.5" fill="none"/>
-    ${shoulders('#c94a3a',21).replace(/32/g,'30')}<rect x="20" y="50" width="20" height="14" fill="#4a6ab0"/><path d="M21 50 L18 46 M39 50 L42 46" stroke="#4a6ab0" stroke-width="3"/>
-    <circle cx="30" cy="31" r="13" fill="${skin}"/>${eyesDot(31,25,35)}<ellipse cx="30" cy="38" rx="2.2" ry="2.6" fill="#7a3a2a"/>
-    <ellipse cx="30" cy="21" rx="21" ry="4.5" fill="#d9b44a"/><path d="M20 21 Q20 8 30 8 Q40 8 40 21Z" fill="#e8c860"/><rect x="20" y="16.5" width="20" height="3" fill="#c94a3a"/>`,
-  farmhand: `${shoulders('#3f7d4a')}<path d="M18 52 H46 M16 58 H48 M24 47 V64 M40 47 V64" stroke="#2c5a35" stroke-width="2"/>
-    <path d="M18 38 Q14 46 20 48" stroke="#8a5a2b" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <circle cx="32" cy="31" r="13" fill="${skin}"/>${eyesDot(31,27,37)}<path d="M28 38 q4 -3 8 0" stroke="#7a3a2a" stroke-width="2" fill="none"/>
-    <path d="M18 27 Q18 14 32 14 Q46 14 46 27 Z" fill="#e04a7a"/><circle cx="24" cy="21" r="1.5" fill="#fff"/><circle cx="34" cy="18" r="1.5" fill="#fff"/><circle cx="40" cy="23" r="1.5" fill="#fff"/>
-    <path d="M45 25 l7 -3 l-2 7Z" fill="#e04a7a"/>`,
-  dog: `<path d="M17 25 Q6 34 12 49 Q20 42 21 30Z" fill="#7a5230"/><path d="M47 25 Q58 34 52 49 Q44 42 43 30Z" fill="#7a5230"/>
-    <ellipse cx="32" cy="35" rx="16" ry="16" fill="#b07a46"/><ellipse cx="32" cy="43" rx="9" ry="7" fill="#e0c49a"/>
-    <ellipse cx="32" cy="39" rx="3.5" ry="2.6" fill="#2a1f1a"/><circle cx="25" cy="31" r="2.4" fill="#2a1f1a"/><circle cx="39" cy="31" r="2.4" fill="#2a1f1a"/>
-    <path d="M32 42 v3 M28 45 q4 3 8 0" stroke="#2a1f1a" stroke-width="1.6" fill="none"/><ellipse cx="34" cy="49" rx="2.5" ry="3" fill="#e05a6a"/>
-    <path d="M18 55 Q32 61 46 55 L46 60 Q32 66 18 60Z" fill="#c94a3a"/><circle cx="32" cy="61" r="2.5" fill="#ffcf4a"/>`,
-  constable: `${shoulders('#2f4a8a')}<path d="M27 46 L32 54 L37 46" fill="#dfe6f5"/><circle cx="24" cy="54" r="2" fill="#ffcf4a"/><circle cx="40" cy="54" r="2" fill="#ffcf4a"/>
-    <circle cx="32" cy="32" r="13" fill="${skin}"/>${eyesDot(32,27,37)}<path d="M27 38 h10" stroke="#7a3a2a" stroke-width="2"/>
-    <path d="M18 24 Q18 13 32 13 Q46 13 46 24 Z" fill="#2f4a8a"/><rect x="16" y="22" width="32" height="5" rx="2" fill="#1d2f5c"/><circle cx="32" cy="18" r="3" fill="#ffcf4a"/>`,
-  sheriff: `${shoulders('#e9dcc0')}<path d="M10 64 Q12 47 26 46 L28 64Z M54 64 Q52 47 38 46 L36 64Z" fill="#8a5a2b"/>
-    <path d="M46 52 l1.6 3.2 l3.5 .5 l-2.5 2.4 l.6 3.5 l-3.2 -1.6 l-3.2 1.6 l.6 -3.5 l-2.5 -2.4 l3.5 -.5Z" fill="#ffcf4a"/>
-    <circle cx="32" cy="32" r="13" fill="${skin}"/>${eyesDot(30,27,37)}<path d="M25 37 q7 -4 14 0 q-7 2 -14 0Z" fill="#5a3a2a"/>
-    <path d="M8 22 Q32 30 56 22 Q52 27 32 27 Q12 27 8 22Z" fill="#6b4a2e"/><path d="M20 23 Q19 9 26 10 Q32 13 38 10 Q45 9 44 23Z" fill="#8a5a2b"/><rect x="20" y="19" width="24" height="3" fill="#3a2a1e"/>`,
-  guard: `<line x1="56" y1="64" x2="56" y2="14" stroke="#8a5a2b" stroke-width="3"/><path d="M56 4 L60 16 H52Z" fill="#d6d9e6"/>
-    ${shoulders('#b33a3a')}<rect x="20" y="49" width="24" height="15" fill="#d6d9e6"/><path d="M32 49 V64" stroke="#a0a6b8" stroke-width="2"/>
-    <circle cx="32" cy="32" r="13" fill="${skin}"/>${eyesDot(33,27,37)}<path d="M28 39 h8" stroke="#7a3a2a" stroke-width="2"/>
-    <path d="M17 29 Q17 14 32 14 Q47 14 47 29 Z" fill="#c4c9d6"/><rect x="30" y="27" width="4" height="9" fill="#c4c9d6"/><path d="M32 14 Q38 4 46 8 Q38 8 34 15Z" fill="#e04a4a"/>`,
-  knight: `${shoulders('#8d93a6',24)}<rect x="17" y="12" width="30" height="34" rx="11" fill="#c4c9d6"/><rect x="20" y="25" width="24" height="4" rx="2" fill="#2a2540"/>
-    <path d="M32 12 V46" stroke="#a0a6b8" stroke-width="2"/><circle cx="25" cy="36" r="1.2" fill="#2a2540"/><circle cx="28" cy="39" r="1.2" fill="#2a2540"/><circle cx="36" cy="39" r="1.2" fill="#2a2540"/><circle cx="39" cy="36" r="1.2" fill="#2a2540"/>
-    <path d="M4 38 H24 V52 Q24 62 14 64 Q4 62 4 52 Z" fill="#3f6bb0" stroke="#d6d9e6" stroke-width="2"/><path d="M8 44 L14 50 L20 44" stroke="#ffcf4a" stroke-width="3" fill="none"/>`,
-  wizard: `<line x1="56" y1="64" x2="56" y2="18" stroke="#6b4a2e" stroke-width="3"/><circle cx="56" cy="15" r="5" fill="#8fd3ff"/>
-    ${shoulders('#3a3a8a')}<circle cx="32" cy="32" r="12" fill="${skin}"/>${eyesDot(30,27,37)}
-    <path d="M20 34 Q32 66 44 34 Q38 40 32 39 Q26 40 20 34Z" fill="#f4f0ff"/>
-    <path d="M14 24 L33 1 L48 24 Z" fill="#3f4fb0"/><ellipse cx="31" cy="24" rx="19" ry="4" fill="#2f3a8a"/>
-    <path d="M30 11 l1 2.4 l2.6 .2 l-2 1.6 l.7 2.5 l-2.3 -1.4 l-2.3 1.4 l.7 -2.5 l-2 -1.6 l2.6 -.2Z" fill="#ffcf4a"/><circle cx="38" cy="17" r="1.5" fill="#ffcf4a"/>`,
-  robot: `<line x1="32" y1="4" x2="32" y2="12" stroke="#a0a6b8" stroke-width="3"/><circle cx="32" cy="5" r="3.5" fill="#e04a4a"/>
-    <rect x="6" y="46" width="52" height="18" rx="4" fill="#6f7690"/><rect x="24" y="50" width="16" height="8" rx="2" fill="#3a4058"/><circle cx="28" cy="54" r="1.6" fill="#7bd36b"/><circle cx="36" cy="54" r="1.6" fill="#ffcf4a"/>
-    <rect x="14" y="12" width="36" height="32" rx="6" fill="#a0a6b8"/><rect x="18" y="20" width="28" height="9" rx="4" fill="#1d1a2b"/>
-    <rect x="21" y="22.5" width="7" height="4" rx="2" fill="#5ef0ff"/><rect x="36" y="22.5" width="7" height="4" rx="2" fill="#5ef0ff"/>
-    <path d="M22 35 H42 M22 39 H42 M27 33 V41 M32 33 V41 M37 33 V41" stroke="#5a6078" stroke-width="2"/>`,
+  // ================= townsfolk =================
+  farmer: `<path d="M55 64 V16" stroke="${INK}" stroke-width="5"/><path d="M55 64 V16" stroke="#a8774a" stroke-width="2.6"/>
+    <path d="M48.5 19.5 V8 M55 19.5 V5.5 M61.5 19.5 V8 M48.5 19.5 H61.5" stroke="${INK}" stroke-width="4.4" fill="none" stroke-linecap="round"/><path d="M48.5 19.5 V8 M55 19.5 V5.5 M61.5 19.5 V8 M48.5 19.5 H61.5" stroke="#d6d9e6" stroke-width="2" fill="none" stroke-linecap="round"/>
+    ${bust('url(#ga-rd)',21,46,30)}<path d="M12 54 H48 M12 59 H48 M20 47 V64 M40 47 V64" stroke="#7a1f1a" stroke-width="1" opacity=".55"/>
+    <path d="M19.5 50 H40.5 V64 H19.5Z" fill="url(#ga-bl)" ${O}/><path d="M20.5 50 L17 45.5 M39.5 50 L43 45.5" stroke="${INK}" stroke-width="4.2"/><path d="M20.5 50 L17 45.5 M39.5 50 L43 45.5" stroke="#4a6ab0" stroke-width="2.4"/><circle cx="22.5" cy="53" r="1.4" fill="#ffcf4a"/><circle cx="37.5" cy="53" r="1.4" fill="#ffcf4a"/>
+    <circle cx="30" cy="31.5" r="13.2" fill="url(#ga-sk)" ${O}/><path d="M24 26.5 q2 -1.4 4 0 M32 26.5 q2 -1.4 4 0" stroke="${INK}" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    ${dot(26,30.5)}${dot(34,30.5)}<ellipse cx="30" cy="38.5" rx="2.2" ry="2.8" fill="#6a2a1e" ${O2}/>${blush(22,35)}${blush(38,35)}<path d="M41.5 30 q2 3 0 4.6 q-2 -1.6 0 -4.6Z" fill="#8fd3ff" ${O2}/>
+    <ellipse cx="30" cy="20.5" rx="21" ry="4.8" fill="url(#ga-straw)" ${O}/><path d="M19.5 20.5 Q19.5 7.5 30 7.5 Q40.5 7.5 40.5 20.5Z" fill="url(#ga-straw)" ${O}/>
+    <rect x="19.6" y="15.6" width="20.8" height="3.4" fill="url(#ga-rd)" ${O2}/><path d="M23 11 l3 4 M29 9 l2 5 M35 10 l1 5 M14 21 l3 1.5 M44 22 l3 -1" stroke="#a87a1e" stroke-width="1" stroke-linecap="round"/>`,
+  farmhand: `${bust('url(#ga-gr)')}<path d="M16 52 H48 M14 58 H50 M24 47 V64 M40 47 V64" stroke="#1d3f25" stroke-width="1.2" opacity=".7"/><path d="M26 46 L32 52 L38 46" fill="#f2ecd9" ${O2}/>
+    <path d="M18 40 Q11 47 18 50" stroke="${INK}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M18 40 Q11 47 18 50" stroke="#8a5a2b" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <circle cx="32" cy="31.5" r="13.2" fill="url(#ga-sk)" ${O}/>${dot(27,31)}${dot(37,31)}<circle cx="25" cy="35.5" r=".7" fill="#b06a3a"/><circle cx="27" cy="36.5" r=".7" fill="#b06a3a"/><circle cx="37" cy="36.5" r=".7" fill="#b06a3a"/><circle cx="39" cy="35.5" r=".7" fill="#b06a3a"/>
+    <path d="M28 38.5 q4 -3 8 0" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M17.5 27.5 Q17.5 13.5 32 13.5 Q46.5 13.5 46.5 27.5 Z" fill="url(#ga-pk)" ${O}/><circle cx="24" cy="21" r="1.6" fill="#fff"/><circle cx="34" cy="17.5" r="1.6" fill="#fff"/><circle cx="40" cy="23" r="1.6" fill="#fff"/><circle cx="29" cy="24" r="1.3" fill="#fff"/>
+    <path d="M45.5 25 l8 -4 l-2.4 8Z" fill="url(#ga-pk)" ${O2}/><path d="M45.5 25 l7 4.5 l-6.4 1.6Z" fill="url(#ga-pk)" ${O2}/>`,
+  dog: `${shadow(32,61,18,2.4)}<path d="M17 24 Q5 32 11 50 Q19 44 21 30Z" fill="#6e4423" ${O}/><path d="M47 24 Q59 32 53 50 Q45 44 43 30Z" fill="#6e4423" ${O}/>
+    <ellipse cx="32" cy="35" rx="16.5" ry="16.5" fill="url(#ga-br)" ${O}/><path d="M25 21 q7 -4 14 0 q-7 5 -14 0Z" fill="#f2e2c4" opacity=".6"/>
+    <ellipse cx="32" cy="43.5" rx="9.5" ry="7.5" fill="#f0dcb6" ${O2}/><ellipse cx="32" cy="39.3" rx="3.8" ry="2.8" fill="${INK}"/><circle cx="31" cy="38.5" r=".9" fill="#fff"/>
+    ${eye(24.5,31,3,.4,.3)}${eye(39.5,31,3,-.4,.3)}<ellipse cx="24.5" cy="26.3" rx="2" ry="1" fill="#f0dcb6"/><ellipse cx="39.5" cy="26.3" rx="2" ry="1" fill="#f0dcb6"/>
+    <path d="M32 42 v3 M27.5 45 q4.5 3.4 9 0" stroke="${INK}" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M31.5 47 q0 5 3 5 q3 0 2.5 -5Z" fill="#f06a7a" ${O2}/>
+    <path d="M17.5 53.5 Q32 60 46.5 53.5 L46.5 58.5 Q32 65 17.5 58.5Z" fill="url(#ga-rd)" ${O2}/><circle cx="32" cy="61" r="2.8" fill="url(#ga-gd)" ${O2}/>`,
+  constable: `${bust('url(#ga-bl)')}<path d="M26.5 46 L32 54 L37.5 46" fill="#dfe6f5" ${O2}/><path d="M30.5 47 L32 55 L33.5 47" fill="#1d2f5c"/>
+    <circle cx="24" cy="54.5" r="1.8" fill="url(#ga-gd)" ${O2}/><circle cx="40" cy="54.5" r="1.8" fill="url(#ga-gd)" ${O2}/><path d="M40 50 l2.5 1.8 l2.5 -1.8 v3.4 l-2.5 1.8 l-2.5 -1.8Z" fill="url(#ga-gd)" ${O2}/>
+    <circle cx="32" cy="32" r="13.2" fill="url(#ga-sk)" ${O}/>${dot(27,31.5)}${dot(37,31.5)}<path d="M25.5 27.5 l3.5 .8 M38.5 27.5 l-3.5 .8" stroke="${INK}" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M26 37 q6 -3 12 0 q-6 2 -12 0Z" fill="#6a3a22" ${O2}/>
+    <path d="M17.5 24.5 Q16 12.5 32 12.5 Q48 12.5 46.5 24.5 Z" fill="url(#ga-bl)" ${O}/><path d="M15.5 25 H48.5 a2 2 0 0 1 0 4.2 H15.5 a2 2 0 0 1 0 -4.2Z" fill="#1d2f5c" ${O2}/>
+    <path d="M32 14.5 l2.6 2.4 v3.4 l-2.6 2 l-2.6 -2 v-3.4Z" fill="url(#ga-gd)" ${O2}/>`,
+  sheriff: `${bust('#efe6d0')}<path d="M10 64 Q11 47 25 46 L28 64Z M54 64 Q53 47 39 46 L36 64Z" fill="url(#ga-br)" ${O}/><path d="M30 46 L32 49 L34 46" fill="#9b2335"/>
+    <path d="M45.5 51 l1.8 3.5 l3.8 .5 l-2.8 2.6 l.7 3.8 l-3.5 -1.8 l-3.5 1.8 l.7 -3.8 l-2.8 -2.6 l3.8 -.5Z" fill="url(#ga-gd)" ${O2}/>
+    <circle cx="32" cy="32" r="13.2" fill="url(#ga-sk)" ${O}/>${dot(27,30.5)}${dot(37,30.5)}<path d="M24.5 26.5 l4 .5 M39.5 26.5 l-4 .5" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M23.5 37.5 q4.2 -4 8.5 -1.5 q4.3 -2.5 8.5 1.5 q-4.3 1 -8.5 -.4 q-4.2 1.4 -8.5 .4Z" fill="#5a3a2a" ${O2}/>
+    <path d="M7 22 Q32 31 57 22 Q53 28.5 32 28.5 Q11 28.5 7 22Z" fill="url(#ga-br)" ${O}/><path d="M19.5 23.5 Q18.5 8.5 25.5 9 Q32 13 38.5 9 Q45.5 8.5 44.5 23.5Z" fill="url(#ga-br)" ${O}/><rect x="19.5" y="19" width="25" height="3.2" fill="#2a1a0e"/>`,
+  guard: `<path d="M56 64 V14" stroke="${INK}" stroke-width="5"/><path d="M56 64 V14" stroke="#a8774a" stroke-width="2.6"/><path d="M56 2.5 L61 16 H51Z" fill="url(#ga-mt)" ${O}/>
+    ${bust('url(#ga-rd)')}<path d="M20 49 H44 V64 H20Z" fill="url(#ga-mtv)" ${O}/><path d="M32 49 V64 M20 55 H44" stroke="#6f7690" stroke-width="1.4"/><circle cx="32" cy="58" r="2.4" fill="url(#ga-gd)" ${O2}/>
+    <circle cx="32" cy="32.5" r="13" fill="url(#ga-sk)" ${O}/>${dot(27,33)}${dot(37,33)}<path d="M28 39.5 h8" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M16.5 29.5 Q16.5 13.5 32 13.5 Q47.5 13.5 47.5 29.5 Z" fill="url(#ga-mtv)" ${O}/><path d="M15 29.5 H49" stroke="${INK}" stroke-width="3.6" stroke-linecap="round"/><path d="M15 29.5 H49" stroke="#b9bdd0" stroke-width="1.8" stroke-linecap="round"/>
+    <rect x="30" y="28" width="4" height="9" rx="1" fill="url(#ga-mtv)" ${O2}/><path d="M32 13.5 Q37 2 47 6 Q40 8 35 14.5Z" fill="url(#ga-rd)" ${O}/>${shine(23,20,2,4,.6,30)}`,
+  knight: `${bust('url(#ga-mtv)',24)}<path d="M14 54 Q32 50 50 54" stroke="#6f7690" stroke-width="1.4" fill="none"/>
+    <path d="M32 11 Q36 2 44 4 Q38 6 35 12Z" fill="url(#ga-bl)" ${O2}/>
+    <rect x="16.5" y="11.5" width="31" height="35" rx="11.5" fill="url(#ga-mtv)" ${O}/><path d="M32 11.5 V46.5" stroke="#878da3" stroke-width="1.6"/>
+    <rect x="19.5" y="24.5" width="25" height="4.6" rx="2.2" fill="#14101e" ${O2}/><circle cx="26" cy="26.8" r="1" fill="#8fd3ff"/><circle cx="38" cy="26.8" r="1" fill="#8fd3ff"/>
+    ${[[25,36],[28.5,39.5],[35.5,39.5],[39,36],[32,42.5]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.2" fill="${INK}"/>`).join('')}${shine(22,17,2.2,4,.7,25)}
+    <path d="M3 37 H25 V51 Q25 61.5 14 64 Q3 61.5 3 51 Z" fill="url(#ga-bl)" ${O}/><path d="M7 42.5 L14 50 L21 42.5" stroke="${INK}" stroke-width="4.6" fill="none" stroke-linejoin="round"/><path d="M7 42.5 L14 50 L21 42.5" stroke="#ffcf4a" stroke-width="2.6" fill="none" stroke-linejoin="round"/>`,
+  wizard: `<path d="M56 64 V20" stroke="${INK}" stroke-width="5"/><path d="M56 64 V20" stroke="#8a5a2b" stroke-width="2.8"/><circle cx="56" cy="15" r="6.5" fill="url(#ga-glow)"/><circle cx="56" cy="15" r="5" fill="url(#ga-orb)" ${O}/>
+    ${bust('url(#ga-bl)')}<path d="M19 50 l2 3 l-2 3 M45 50 l-2 3 l2 3" stroke="#ffcf4a" stroke-width="1.4" fill="none"/>
+    <circle cx="32" cy="32.5" r="12.3" fill="url(#ga-sk)" ${O}/>${dot(27.5,30.5)}${dot(36.5,30.5)}<path d="M24.5 27 q3 -2 5 0 M34.5 27 q2 -2 5 0" stroke="#e8e8f4" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M19.5 34.5 Q21 40 25 38 Q28 41 32 39.5 Q36 41 39 38 Q43 40 44.5 34.5 Q46 50 39 58 Q35 61 32 63.5 Q29 61 25 58 Q18 50 19.5 34.5Z" fill="#f4f2fb" ${O}/>
+    <path d="M27 39.5 q5 -3 10 0" stroke="#c9c6dc" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M26 47 q3 5 6 2 q3 3 6 -2" stroke="#d6d3e6" stroke-width="1.2" fill="none"/>
+    <path d="M13 25 L34 0.5 L49 25 Z" fill="url(#ga-bl)" ${O}/><path d="M34 .5 Q38 4 42 4" stroke="${INK}" stroke-width="1" fill="none"/><ellipse cx="31" cy="25" rx="20" ry="4.2" fill="#28407a" ${O}/>
+    <path d="M30 11.5 l1.2 2.6 l2.8 .3 l-2.1 1.8 l.7 2.7 l-2.6 -1.5 l-2.6 1.5 l.7 -2.7 l-2.1 -1.8 l2.8 -.3Z" fill="url(#ga-gd)"/><circle cx="38" cy="17" r="1.4" fill="#ffcf4a"/><circle cx="24" cy="21" r="1" fill="#ffcf4a"/>`,
+  robot: `<path d="M32 3.5 V12" stroke="${INK}" stroke-width="4.6"/><path d="M32 3.5 V12" stroke="#b9bdd0" stroke-width="2.4"/><circle cx="32" cy="4.5" r="4" fill="url(#ga-rd)" ${O}/>
+    <rect x="5" y="46" width="54" height="18" rx="5" fill="url(#ga-mtv)" ${O}/><rect x="23" y="50" width="18" height="9" rx="2" fill="#3a4058" ${O2}/><circle cx="28" cy="54.5" r="1.8" fill="#7bd36b"/><circle cx="32" cy="54.5" r="1.8" fill="#ffcf4a"/><circle cx="36" cy="54.5" r="1.8" fill="#ff6b6b"/>
+    <circle cx="10" cy="51" r="1.2" fill="#6f7690"/><circle cx="54" cy="51" r="1.2" fill="#6f7690"/>
+    <rect x="9.5" y="22" width="5" height="12" rx="2" fill="#878da3" ${O2}/><rect x="49.5" y="22" width="5" height="12" rx="2" fill="#878da3" ${O2}/>
+    <rect x="13.5" y="11.5" width="37" height="33" rx="7" fill="url(#ga-mtv)" ${O}/><rect x="17.5" y="19.5" width="29" height="10" rx="5" fill="#141020" ${O2}/>
+    <rect x="21" y="22.2" width="8" height="4.6" rx="2.3" fill="#5ef0ff"/><rect x="35" y="22.2" width="8" height="4.6" rx="2.3" fill="#5ef0ff"/><rect x="21" y="22.2" width="8" height="1.6" rx=".8" fill="#e6fdff"/><rect x="35" y="22.2" width="8" height="1.6" rx=".8" fill="#e6fdff"/>
+    <rect x="21" y="33.5" width="22" height="7" rx="2" fill="#3a4058" ${O2}/><path d="M26 33.5 V40.5 M30.5 33.5 V40.5 M35 33.5 V40.5 M39.5 33.5 V40.5" stroke="#878da3" stroke-width="1.4"/>
+    ${[[17,15],[47,15],[17,41],[47,41]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.1" fill="#6f7690"/>`).join('')}${shine(20,15,3,1.5,.7,0)}`,
 };
 
+window.ART_DEFS = DEFS;
+function injectDefs(){ if(typeof document!=='undefined' && document.body && !document.getElementById('ga-defs')){ const d=document.createElement('div'); d.id='ga-defs'; d.innerHTML=DEFS; document.body.prepend(d);} }
+if(typeof document!=='undefined'){ if(document.body) injectDefs(); else document.addEventListener('DOMContentLoaded', injectDefs); }
 window.art = (key, cls='') => `<svg class="ic ${cls}" viewBox="0 0 64 64" aria-hidden="true" focusable="false">${ART[key]||''}</svg>`;
 window.ART_KEYS = Object.keys(ART);
 })();
