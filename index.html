@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Grave Acres</title>
+<meta name="description" content="Grow crops, raise a zombie horde, and raid the towns next door.">
+<meta name="theme-color" content="#1d1a2b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Grave Acres">
+<style>
+:root{--bg:#1d1a2b;--panel:#2a2540;--ink:#f2ecd9;--muted:#a69fc0;--green:#7bd36b;--gold:#ffcf4a;--red:#ff6b6b;--dirt:#6b4a2e;--dirt2:#5a3d25;--grass:#3f6b35}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+#app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 8px)}
+header{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chip{background:var(--panel);border-radius:999px;padding:6px 10px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:4px}
+.title{font-weight:900;font-size:18px;letter-spacing:.5px;margin-right:auto}
+.xpbar{height:6px;background:#00000055;border-radius:3px;margin:8px 0 10px;overflow:hidden}
+.xpbar>div{height:100%;background:var(--green);transition:width .3s}
+nav{display:flex;gap:6px;margin-bottom:10px}
+nav button{flex:1}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:10px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.on{background:var(--green);color:#132}
+button.gold{background:var(--gold);color:#321}
+button:disabled{opacity:.4}
+.view{display:none;flex:1}.view.show{display:block}
+#field{background:var(--grass);border-radius:16px;padding:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;box-shadow:inset 0 0 0 3px #00000033}
+.plot{aspect-ratio:1;border-radius:12px;background:repeating-linear-gradient(0deg,var(--dirt) 0 8px,var(--dirt2) 8px 16px);position:relative;display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;overflow:hidden}
+.plot.locked{background:#2c3f28;font-size:20px;color:#ffffff88}
+.plot .bar{position:absolute;left:6px;right:6px;bottom:6px;height:5px;background:#0006;border-radius:3px}
+.plot .bar>div{height:100%;background:var(--green);border-radius:3px}
+.plot.ready{animation:bob 1s ease-in-out infinite;box-shadow:0 0 0 3px var(--gold)}
+.plot .tiny{font-size:16px;opacity:.85}
+.plot .wet{position:absolute;top:3px;right:5px;font-size:12px}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.hint{color:var(--muted);font-size:13px;text-align:center;margin:10px 0}
+.sheet{position:fixed;inset:0;background:#0009;display:none;align-items:flex-end;justify-content:center;z-index:10}
+.sheet.show{display:flex}
+.sheet>div{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 14px calc(env(safe-area-inset-bottom) + 16px);max-height:80vh;overflow:auto}
+.sheet h3{margin:0 0 10px}
+.row{display:flex;align-items:center;gap:10px;background:#00000033;border-radius:12px;padding:10px;margin-bottom:8px}
+.row .em{font-size:30px;width:40px;text-align:center}
+.row .info{flex:1;font-size:13px;color:var(--muted)}
+.row .info b{color:var(--ink);font-size:15px;display:block}
+.row.lock{opacity:.45}
+.horde{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.zcard{background:var(--panel);border-radius:12px;padding:8px 4px;text-align:center;font-size:12px}
+.zcard .e{font-size:28px}
+.zcard.mut{box-shadow:0 0 0 2px var(--gold)}
+#battle{background:#151222;border-radius:16px;padding:10px}
+.side{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:56px}
+.u{width:48px;text-align:center;font-size:26px;position:relative;transition:transform .15s}
+.u .hp{height:4px;background:#0008;border-radius:2px;margin-top:2px}
+.u .hp>div{height:100%;background:var(--green);border-radius:2px}
+.u.dead{opacity:.15}
+.u.hit{transform:scale(.8) rotate(-8deg)}
+.vs{text-align:center;color:var(--muted);margin:8px 0;font-weight:800}
+#log{font-size:12px;color:var(--muted);height:70px;overflow:auto;margin-top:8px}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 60px);transform:translateX(-50%);background:var(--gold);color:#321;font-weight:800;padding:10px 16px;border-radius:999px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;white-space:nowrap}
+#toast.show{opacity:1}
+.float{position:fixed;pointer-events:none;font-weight:900;color:var(--gold);animation:up .9s forwards;z-index:15;text-shadow:0 2px 4px #000}
+@keyframes up{to{transform:translateY(-40px);opacity:0}}
+small.m{color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title">🪦 Grave Acres</div>
+    <div class="chip">⭐ <span id="lvl">1</span></div>
+    <div class="chip">🪙 <span id="coins">0</span></div>
+    <div class="chip">🦴 <span id="bones">0</span></div>
+  </header>
+  <div class="xpbar"><div id="xp"></div></div>
+  <nav>
+    <button data-v="farm" class="on">🌱 Farm</button>
+    <button data-v="horde">🧟 Horde</button>
+    <button data-v="raid">⚔️ Raid</button>
+  </nav>
+
+  <section class="view show" id="v-farm">
+    <div id="field"></div>
+    <div class="hint">Tap a plot to plant. Tap a growing plot to water it (once, speeds it up). Tap a glowing plot to harvest.</div>
+  </section>
+
+  <section class="view" id="v-horde">
+    <div class="hint" id="hordeInfo"></div>
+    <div class="horde" id="hordeList"></div>
+  </section>
+
+  <section class="view" id="v-raid">
+    <div id="raidPick"></div>
+    <div id="battle" style="display:none">
+      <div class="side" id="foes"></div>
+      <div class="vs" id="vsTxt">VS</div>
+      <div class="side" id="mine"></div>
+      <div id="log"></div>
+      <button id="battleDone" style="width:100%;margin-top:8px;display:none">Back</button>
+    </div>
+  </section>
+</div>
+
+<div class="sheet" id="sheet"><div id="sheetBody"></div></div>
+<div id="toast"></div>
+
+<script>
+// ---------- Data ----------
+const SEEDS = [
+  {id:'radish', type:'crop', e:'🥕', name:'Ghost Carrot', cost:5,  time:20,  sell:12,  xp:2,  lvl:1},
+  {id:'corn',   type:'crop', e:'🌽', name:'Moon Corn',    cost:12, time:45,  sell:30,  xp:4,  lvl:1},
+  {id:'pump',   type:'crop', e:'🎃', name:'Grin Gourd',   cost:25, time:90,  sell:65,  xp:7,  lvl:3},
+  {id:'egg',    type:'crop', e:'🍆', name:'Gloom Plum',   cost:45, time:180, sell:125, xp:12, lvl:5},
+  {id:'mush',   type:'crop', e:'🍄', name:'Spook Cap',    cost:80, time:300, sell:230, xp:20, lvl:7},
+  {id:'shamb',  type:'zom', e:'🧟', name:'Shambler', cost:20,  time:40,  atk:3, hp:12, xp:5,  lvl:1, sell:8},
+  {id:'sprint', type:'zom', e:'🏃', name:'Dasher',   cost:45,  time:75,  atk:5, hp:9,  xp:8,  lvl:2, sell:18},
+  {id:'brute',  type:'zom', e:'🦍', name:'Lugnut',   cost:90,  time:150, atk:6, hp:28, xp:14, lvl:4, sell:35},
+  {id:'mummy',  type:'zom', e:'🧻', name:'Wrapster', cost:140, time:220, atk:8, hp:24, xp:20, lvl:6, sell:55},
+  {id:'vamp',   type:'zom', e:'🧛', name:'Night Count', cost:220, time:320, atk:12, hp:30, xp:30, lvl:8, sell:90},
+];
+const TOWNS = [
+  {name:'Pickleton',   lvl:1, foes:[['👨‍🌾',2,10],['👨‍🌾',2,10]], coins:40,  bones:1, xp:15},
+  {name:'Hayford',     lvl:2, foes:[['👨‍🌾',2,10],['👩‍🌾',3,12],['🐕',3,8]], coins:80, bones:2, xp:25},
+  {name:'Mudbury',     lvl:3, foes:[['👮',4,16],['👩‍🌾',3,12],['👨‍🌾',2,10],['🐕',3,8]], coins:140, bones:3, xp:40},
+  {name:'Cobble Creek',lvl:5, foes:[['👮',4,18],['👮',4,18],['🤠',6,20],['🐕',3,10]], coins:220, bones:4, xp:60},
+  {name:'Fort Turnip', lvl:6, foes:[['💂',6,26],['💂',6,26],['🤠',6,22],['👮',5,18],['🐕',4,10]], coins:320, bones:6, xp:85},
+  {name:'Castle Kale', lvl:8, foes:[['🛡️',8,40],['💂',7,28],['💂',7,28],['🧙',10,22],['🤠',7,24]], coins:500, bones:10, xp:130},
+  {name:'The Capital', lvl:10,foes:[['🤖',12,60],['🛡️',9,45],['🛡️',9,45],['🧙',12,26],['💂',8,30],['💂',8,30]], coins:900, bones:20, xp:220},
+];
+const xpNeed = l => 30 + (l-1)*40 + (l-1)*(l-1)*8;
+const hordeCap = () => 6 + S.level;
+const PLOT_COST = [0,0,0,0,0,0,0,0, 60,90,130,180, 250,330,420,520, 650,800,1000,1250];
+
+// ---------- State ----------
+const KEY='graveacres.v1';
+function fresh(){return {coins:60,bones:0,level:1,xp:0,plots:Array.from({length:20},(_,i)=>i<8?{}:null),horde:[],beaten:{},zid:1}}
+let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){} if(!S||!S.plots)S=fresh();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const seed = id => SEEDS.find(s=>s.id===id);
+const $ = id => document.getElementById(id);
+
+// ---------- UI helpers ----------
+let tt; function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1600)}
+function floatAt(el,txt){const r=el.getBoundingClientRect();const f=document.createElement('div');f.className='float';f.textContent=txt;f.style.left=(r.left+r.width/2-20)+'px';f.style.top=(r.top)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),900)}
+function fmt(s){s=Math.max(0,Math.ceil(s));return s>=60?Math.floor(s/60)+'m '+(s%60)+'s':s+'s'}
+function openSheet(html){$('sheetBody').innerHTML=html;$('sheet').classList.add('show')}
+function closeSheet(){$('sheet').classList.remove('show')}
+$('sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
+
+function gainXP(n){
+  S.xp+=n;
+  while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;S.coins+=25*S.level;
+    const un=SEEDS.filter(s=>s.lvl===S.level).map(s=>s.e+' '+s.name);
+    toast('⭐ Level '+S.level+'!'+(un.length?' Unlocked '+un.join(', '):''));}
+}
+function hud(){
+  $('lvl').textContent=S.level;$('coins').textContent=S.coins;$('bones').textContent=S.bones;
+  $('xp').style.width=(100*S.xp/xpNeed(S.level))+'%';
+}
+
+// ---------- Farm ----------
+function plotState(p){
+  if(!p||!p.seed)return 'empty';
+  const s=seed(p.seed);const el=(Date.now()-p.t)/1000*(p.w?1.35:1);
+  return el>=s.time?'ready':'grow';
+}
+function progress(p){const s=seed(p.seed);return Math.min(1,(Date.now()-p.t)/1000*(p.w?1.35:1)/s.time)}
+function remaining(p){const s=seed(p.seed);return (s.time-(Date.now()-p.t)/1000*(p.w?1.35:1))/(p.w?1.35:1)}
+
+function renderField(){
+  const f=$('field');
+  if(f.children.length!==20){f.innerHTML='';for(let i=0;i<20;i++){const d=document.createElement('div');d.className='plot';d.onclick=()=>tapPlot(i,d);f.appendChild(d)}}
+  S.plots.forEach((p,i)=>{
+    const d=f.children[i];
+    if(p===null){
+      const prev=S.plots.slice(0,i).every(x=>x!==null);
+      d.className='plot locked';d.innerHTML=prev?'🔒<br><span style="font-size:12px">🪙'+PLOT_COST[i]+'</span>':'';
+      d.style.flexDirection='column';return;
+    }
+    d.style.flexDirection='';
+    const st=plotState(p);
+    if(st==='empty'){d.className='plot';d.innerHTML='';return}
+    const s=seed(p.seed);
+    if(st==='ready'){d.className='plot ready';d.innerHTML=s.e;return}
+    const pr=progress(p);
+    d.className='plot';
+    d.innerHTML=(s.type==='zom'?'<span class="tiny">'+(pr<.5?'🪦':'✋')+'</span>':'<span class="tiny">'+(pr<.5?'🌱':'🌿')+'</span>')+
+      (p.w?'<span class="wet">💧</span>':'')+'<div class="bar"><div style="width:'+(pr*100)+'%"></div></div>';
+  });
+}
+
+function tapPlot(i,el){
+  const p=S.plots[i];
+  if(p===null){
+    if(!S.plots.slice(0,i).every(x=>x!==null))return toast('Unlock plots in order');
+    const c=PLOT_COST[i];
+    if(S.coins<c)return toast('Need 🪙'+c+' to clear this plot');
+    S.coins-=c;S.plots[i]={};floatAt(el,'-'+c);save();return refresh();
+  }
+  const st=plotState(p);
+  if(st==='empty')return seedPicker(i);
+  if(st==='grow'){
+    if(p.w)return toast(seed(p.seed).name+': '+fmt(remaining(p))+' left');
+    // convert progress so watering doesn't jump
+    const s=seed(p.seed);const done=(Date.now()-p.t)/1000;p.w=1;p.t=Date.now()-done/1.35*1000;
+    floatAt(el,'💧');save();return refresh();
+  }
+  // harvest
+  const s=seed(p.seed);
+  if(s.type==='crop'){S.coins+=s.sell;gainXP(s.xp);floatAt(el,'+🪙'+s.sell)}
+  else{
+    if(S.horde.length>=hordeCap()){return toast('Horde full ('+hordeCap()+'). Raid or release some!')}
+    const mut=Math.random()<.15;
+    S.horde.push({id:S.zid++,s:s.id,mut});gainXP(s.xp);
+    floatAt(el,mut?'✨ Mutant!':'+1 '+s.e);
+    if(mut)toast('✨ A mutant '+s.name+' rose! +50% stats');
+  }
+  S.plots[i]={};save();refresh();
+}
+
+function seedPicker(i){
+  const rows=['crop','zom'].map(t=>'<h4 style="margin:10px 0 6px">'+(t==='crop'?'🌱 Crops (sell for coins)':'🧟 Zombie seeds (grow your horde)')+'</h4>'+
+    SEEDS.filter(s=>s.type===t).map(s=>{
+      const lock=S.level<s.lvl;
+      return '<div class="row'+(lock?' lock':'')+'"><div class="em">'+s.e+'</div><div class="info"><b>'+s.name+'</b>'+
+        (lock?'Unlocks at level '+s.lvl:'⏱ '+fmt(s.time)+(s.type==='crop'?' · sells 🪙'+s.sell:' · ⚔️'+s.atk+' ❤️'+s.hp))+
+        '</div><button '+(lock||S.coins<s.cost?'disabled':'')+' onclick="plant('+i+',\''+s.id+'\')">🪙'+s.cost+'</button></div>'}).join('')).join('');
+  openSheet('<h3>Plant something</h3>'+rows);
+}
+function plant(i,id){
+  const s=seed(id);if(S.coins<s.cost)return;
+  S.coins-=s.cost;S.plots[i]={seed:id,t:Date.now()};closeSheet();save();refresh();
+}
+
+// ---------- Horde ----------
+function zStats(z){const s=seed(z.s);const m=z.mut?1.5:1;return{atk:Math.round(s.atk*m),hp:Math.round(s.hp*m),e:s.e,name:s.name}}
+function renderHorde(){
+  $('hordeInfo').innerHTML='Horde: '+S.horde.length+' / '+hordeCap()+' · Tap a zombie to release it for coins. ✨ = mutant';
+  $('hordeList').innerHTML=S.horde.length?S.horde.map(z=>{const st=zStats(z);
+    return '<div class="zcard'+(z.mut?' mut':'')+'" onclick="releaseZ('+z.id+')"><div class="e">'+st.e+'</div>'+(z.mut?'✨':'')+st.name+'<br><small class="m">⚔️'+st.atk+' ❤️'+st.hp+'</small></div>'}).join('')
+    :'<div class="hint" style="grid-column:1/-1">No zombies yet. Plant a Shambler on the farm!</div>';
+}
+function releaseZ(id){
+  const z=S.horde.find(z=>z.id===id);const st=zStats(z);const val=seed(z.s).sell*(z.mut?2:1);
+  openSheet('<h3>'+st.e+' '+st.name+(z.mut?' ✨':'')+'</h3><p class="m" style="color:var(--muted)">Release back into the soil for 🪙'+val+'?</p>'+
+    '<div style="display:flex;gap:8px"><button style="flex:1" onclick="closeSheet()">Keep</button><button class="gold" style="flex:1" onclick="doRelease('+id+','+val+')">Release</button></div>');
+}
+function doRelease(id,val){S.horde=S.horde.filter(z=>z.id!==id);S.coins+=val;closeSheet();save();refresh()}
+
+// ---------- Raids ----------
+let fighting=false;
+function renderRaid(){
+  if(fighting)return;
+  $('raidPick').style.display='';$('battle').style.display='none';
+  const power=S.horde.reduce((a,z)=>{const s=zStats(z);return a+s.atk*2+s.hp/2},0);
+  $('raidPick').innerHTML='<div class="hint">Your horde power: <b style="color:var(--ink)">'+Math.round(power)+'</b> · Zombies that fall in battle are lost. Bring your whole horde!</div>'+
+    TOWNS.map((t,i)=>{
+      const lock=S.level<t.lvl||(i>0&&!S.beaten[i-1]);
+      const fp=t.foes.reduce((a,f)=>a+f[1]*2+f[2]/2,0);
+      return '<div class="row'+(lock?' lock':'')+'"><div class="em">'+(S.beaten[i]?'🏚️':'🏘️')+'</div><div class="info"><b>'+t.name+'</b>'+
+        (lock?(S.level<t.lvl?'Reach level '+t.lvl:'Raid the previous town first'):'Defense '+Math.round(fp)+' · '+t.foes.map(f=>f[0]).join('')+'<br>Loot 🪙'+t.coins+' 🦴'+t.bones+(S.beaten[i]?' (repeat: half coins)':''))+
+        '</div><button '+(lock||!S.horde.length?'disabled':'')+' onclick="raid('+i+')">Raid</button></div>'}).join('')+
+    '<div class="hint">🦴 Bones buy a mutation serum in the Horde tab.</div>';
+}
+
+function unitHTML(u,i,side){return '<div class="u" id="'+side+i+'">'+u.e+'<div class="hp"><div style="width:'+(100*u.hp/u.max)+'%"></div></div></div>'}
+function raid(ti){
+  const t=TOWNS[ti];fighting=true;
+  const mine=S.horde.map(z=>{const s=zStats(z);return{e:s.e,atk:s.atk,hp:s.hp,max:s.hp,zid:z.id,name:s.name}});
+  const foes=t.foes.map(f=>({e:f[0],atk:f[1],hp:f[2],max:f[2]}));
+  $('raidPick').style.display='none';$('battle').style.display='';$('battleDone').style.display='none';
+  $('vsTxt').textContent='⚔️ Raiding '+t.name+' ⚔️';$('log').innerHTML='';
+  const draw=()=>{$('mine').innerHTML=mine.map((u,i)=>unitHTML(u,i,'m')).join('');$('foes').innerHTML=foes.map((u,i)=>unitHTML(u,i,'f')).join('');
+    mine.forEach((u,i)=>u.hp<=0&&$('m'+i).classList.add('dead'));foes.forEach((u,i)=>u.hp<=0&&$('f'+i).classList.add('dead'))};
+  const log=s=>{const l=$('log');l.innerHTML+=s+'<br>';l.scrollTop=1e9};
+  draw();
+  const alive=a=>a.filter(u=>u.hp>0);
+  const queue=[];
+  // build turn order lazily
+  function step(){
+    const A=alive(mine),B=alive(foes);
+    if(!A.length||!B.length)return finish(!B.length);
+    if(!queue.length){mine.forEach((u,i)=>u.hp>0&&queue.push(['m',i]));foes.forEach((u,i)=>u.hp>0&&queue.push(['f',i]));queue.sort(()=>Math.random()-.5)}
+    const [side,i]=queue.shift();const att=side==='m'?mine[i]:foes[i];
+    if(att.hp<=0)return step();
+    const targets=side==='m'?foes:mine;const live=targets.map((u,j)=>[u,j]).filter(x=>x[0].hp>0);
+    if(!live.length)return step();
+    const [tg,j]=live[Math.floor(Math.random()*live.length)];
+    const dmg=Math.max(1,Math.round(att.atk*(.75+Math.random()*.5)));
+    const crit=Math.random()<.1;const total=crit?dmg*2:dmg;
+    tg.hp-=total;
+    log(att.e+' hits '+tg.e+' for '+total+(crit?' 💥':'')+(tg.hp<=0?' — down!':''));
+    draw();const el=$((side==='m'?'f':'m')+j);el&&el.classList.add('hit');
+    setTimeout(step,380);
+  }
+  function finish(win){
+    const lost=mine.filter(u=>u.hp<=0).map(u=>u.zid);
+    S.horde=S.horde.filter(z=>!lost.includes(z.id));
+    if(win){const c=S.beaten[ti]?Math.round(t.coins/2):t.coins;S.coins+=c;S.bones+=t.bones;gainXP(t.xp);S.beaten[ti]=1;
+      log('<b style="color:var(--green)">Victory! +🪙'+c+' +🦴'+t.bones+' +'+t.xp+'xp</b>');toast('🏆 '+t.name+' overrun!')}
+    else log('<b style="color:var(--red)">The townsfolk held them off…</b>');
+    if(lost.length)log(lost.length+' zombie'+(lost.length>1?'s':'')+' fell.');
+    fighting=false;save();hud();$('battleDone').style.display='';
+  }
+  setTimeout(step,500);
+}
+$('battleDone').onclick=()=>{refresh()};
+
+// Mutation serum (bones) in horde tab
+function serumBtn(){
+  const plain=S.horde.filter(z=>!z.mut);
+  return '<div class="row" style="margin-top:12px"><div class="em">🧪</div><div class="info"><b>Mutation Serum</b>Turn a random non-mutant zombie into a ✨ mutant</div><button class="gold" '+(S.bones<5||!plain.length?'disabled':'')+' onclick="serum()">🦴5</button></div>';
+}
+function serum(){const plain=S.horde.filter(z=>!z.mut);if(S.bones<5||!plain.length)return;const z=plain[Math.floor(Math.random()*plain.length)];z.mut=true;S.bones-=5;toast('✨ Your '+seed(z.s).name+' mutated!');save();refresh()}
+
+// ---------- Nav / loop ----------
+let view='farm';
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(fighting)return toast('Battle in progress!');view=b.dataset.v;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('show',v.id==='v-'+view));refresh()});
+function refresh(){hud();if(view==='farm')renderField();if(view==='horde'){renderHorde();$('hordeList').insertAdjacentHTML('afterend','');document.getElementById('serumWrap')?.remove();$('v-horde').insertAdjacentHTML('beforeend','<div id="serumWrap">'+serumBtn()+'</div>')}if(view==='raid')renderRaid()}
+setInterval(()=>{if(view==='farm')renderField()},500);
+refresh();
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+if(!S.seen){S.seen=1;save();setTimeout(()=>openSheet('<h3>🪦 Welcome to Grave Acres</h3><p style="color:var(--muted);line-height:1.5">Grow crops to earn 🪙 coins. Plant zombie seeds to raise a horde. Then raid nearby towns for loot, bones and XP. Level up to unlock stranger seeds — and watch for ✨ mutants!</p><p style="color:var(--muted)">Your farm keeps growing while you\'re away (progress is saved on this device).</p><button class="gold" style="width:100%" onclick="closeSheet()">Start farming</button>'),300)}
+</script>
+</body>
+</html>
