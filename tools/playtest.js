@@ -27,6 +27,7 @@ const { launch, GAME, OUT } = require('./browser');
   await p.click('#sheetBody .zcard.off >> nth=0'); await p.click('#sheetBody button.gold'); await p.waitForTimeout(1800); await shot('05-battle');
   await p.click('#skipBtn'); await p.waitForTimeout(400);
   ok(/rebuild stronger|held them off/.test(await p.evaluate(() => document.getElementById('log').innerText)), 'battle resolves');
+  ok(await p.evaluate(() => document.getElementById('result').classList.contains('show') && document.querySelectorAll('#mine .u, #foes .u').length >= 2), 'battle result card shows');
   await p.click('#battleDone');
   await p.evaluate(() => { S.nextMob = Date.now() - 1000; }); await p.waitForTimeout(1200); await shot('06-mob');
   ok(/mob/i.test(await p.evaluate(() => document.getElementById('sheetBody').innerText)), 'torch mob resolves');

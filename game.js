@@ -62,7 +62,7 @@ const witherWindow = s => Math.max(300, s.time*4);   // seconds a ripe crop last
 
 // ================= State =================
 const KEY='graveacres.v1';
-function fresh(){return {coins:50,bones:0,level:1,xp:0,plots:Array.from({length:20},(_,i)=>i<8?{}:null),horde:[],beaten:{},zid:1,goal:0,sound:true,
+function fresh(){return {coins:50,bones:0,level:1,xp:0,plots:Array.from({length:20},(_,i)=>i<8?{}:null),horde:[],beaten:{},zid:1,goal:0,sound:true,fast:false,
   stats:{harvests:0,raised:0,raids:0,wins:0,planted:0,mutants:0,mobWins:0,mobLosses:0,withered:0}}}
 let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!Array.isArray(S.plots))S=fresh();
@@ -111,6 +111,34 @@ let tt; function toast(t){const el=$('toast');el.textContent=t;el.classList.add(
 function floatAt(el,html){const r=el.getBoundingClientRect();const f=document.createElement('div');f.className='float';f.innerHTML=html;f.style.left=(r.left+r.width/2-24)+'px';f.style.top=(r.top)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),900)}
 function fmt(s){s=Math.max(0,Math.ceil(s));return s>=60?Math.floor(s/60)+'m '+(s%60)+'s':s+'s'}
 const clock = s => {s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+// --- 3D effects. Each one is skipped if the phone asks for reduced motion or can't animate this way.
+const motionOK = () => !!document.body.animate && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+function bump(el){if(!el)return;el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')}
+// A picture leaps off the spot toward the player, spins, and flies to a target (coins to the purse, zombies to the Horde tab)
+function flyArt(key,from,to,o={}){
+  if(!motionOK()||!from||!to)return o.done&&o.done();
+  const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),sz=o.size||Math.min(a.width,a.height)*.7;
+  const el=document.createElement('div');el.className='fly';el.innerHTML=art(key);
+  el.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+(a.left+a.width/2-sz/2)+'px;top:'+(a.top+a.height/2-sz/2)+'px';
+  document.body.appendChild(el);
+  const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2),spin=o.spin===undefined?360:o.spin,P='perspective(480px) ';
+  el.animate([
+    {transform:P+'translate3d(0,0,0) rotateY(0deg) scale(1)',opacity:1},
+    {transform:P+'translate3d('+(o.dx||0)+'px,-44px,130px) rotateY('+spin+'deg) scale(1.1)',opacity:1,offset:.38,easing:'ease-in'},
+    {transform:P+'translate3d('+dx+'px,'+dy+'px,0) rotateY('+spin*2+'deg) scale('+(o.end||.35)+')',opacity:.85}
+  ],{duration:o.dur||680,delay:o.delay||0,easing:'ease-out',fill:'both'}).onfinish=()=>{el.remove();o.done&&o.done()};
+}
+// A harvested crop jumps up out of its bed toward the player and fades
+function popArt(key,from){
+  if(!motionOK()||!from)return;
+  const a=from.getBoundingClientRect(),sz=Math.min(a.width,a.height)*.8;
+  const el=document.createElement('div');el.className='fly';el.innerHTML=art(key);
+  el.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+(a.left+a.width/2-sz/2)+'px;top:'+(a.top+a.height/2-sz/2)+'px';
+  document.body.appendChild(el);
+  el.animate([{transform:'perspective(480px) translate3d(0,0,0) rotateY(0deg)',opacity:1},{transform:'perspective(480px) translate3d(0,-64px,170px) rotateY(200deg)',opacity:0}],{duration:520,easing:'cubic-bezier(.2,.7,.4,1)',fill:'both'}).onfinish=()=>el.remove();
+}
+function coinsFrom(el,n){for(let i=0;i<n;i++)flyArt('coin',el,$('coins').parentNode,{size:24,delay:i*70,dx:(i-(n-1)/2)*26,end:.7,done:i===n-1?()=>bump($('coins').parentNode):null})}
+let lvlT; function levelCard(lines){const el=$('lvlUp');el.innerHTML='<div class="card"><div class="st">'+art('star')+'</div><div><b>Level '+S.level+'!</b>'+lines.join('<br>')+'</div></div>';clearTimeout(lvlT);lvlT=setTimeout(()=>{el.innerHTML=''},3300)}
 let sheetLock=false;
 function openSheet(html,lock=false){$('sheetBody').innerHTML=html;$('sheet').classList.add('show');sheetLock=lock}
 function closeSheet(){$('sheet').classList.remove('show');sheetLock=false}
@@ -120,13 +148,15 @@ function gainXP(n){
   S.xp+=n;
   while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;const bonus=25*S.level;S.coins+=bonus;
     const un=SEEDS.filter(s=>s.lvl===S.level).map(s=>s.name);const towns=TOWNS.filter(t=>t.lvl===S.level).map(t=>t.name);
-    toast('Level '+S.level+'! +'+bonus+' coins · squad size '+squadCap()+(un.length?' · New seed: '+un.join(', '):'')+(towns.length?' · New town: '+towns.join(', '):''));
+    levelCard(['+'+bonus+' coins · squad size '+squadCap()].concat(un.length?['New seed: '+un.join(', ')]:[],towns.length?['New town: '+towns.join(', ')]:[]));
     sfx.win();buzz([30,40,30]);}
 }
 function hud(){
   $('lvl').textContent=S.level;$('coins').textContent=fmtN(S.coins);$('bones').textContent=fmtN(S.bones);
   $('xp').style.width=(100*S.xp/xpNeed(S.level))+'%';
+  [['coins',S.coins],['bones',S.bones],['lvl',S.level]].forEach(([id,v])=>{if(hudSeen[id]!==undefined&&hudSeen[id]!==v)bump($(id).parentNode);hudSeen[id]=v});
 }
+const hudSeen={};
 
 // ================= Farm =================
 const rate = p => p.w?WATER:1;
@@ -149,14 +179,14 @@ function renderField(){
   if(f.children.length!==20){f.innerHTML='';for(let i=0;i<20;i++){const d=document.createElement('button');d.className='plot';d.onclick=()=>tapPlot(i,d);f.appendChild(d)}}
   const nl=nextLockedIndex();
   S.plots.forEach((p,i)=>{
-    const d=f.children[i];let key,html,cls='plot',label;
+    const d=f.children[i];let key,html,cls='plot',label,grow=null;
     if(p===null){
       cls='plot locked';
       if(i===nl){key='lock';html='<div class="art">'+art('lock')+'</div>'+mi('coin')+' '+PLOT_COST[i];label='Locked plot, costs '+PLOT_COST[i]+' coins';}
       else{key='lock2';html='';label='Locked plot';}
     }else{
       const st=plotState(p);
-      if(st==='empty'){key='empty';html='';label='Empty plot, tap to plant';}
+      if(st==='empty'){key='empty';html='<span class="plus" aria-hidden="true">+</span>';label='Empty plot, tap to plant';}
       else{
         const s=seed(p.seed);
         if(st==='withered'){cls='plot wither';key='wilt';html='<div class="art">'+art('wilt')+'</div>';label='Withered '+s.name+', tap to clear';}
@@ -165,13 +195,16 @@ function renderField(){
           cls='plot '+(warn?'warn':'ready');key=cls+s.id;html='<div class="art">'+art(s.id)+'</div>';label=s.name+' ready to harvest'+(warn?', about to wither':'');}
         else{
           const pr=progress(p);const stage=s.type==='zom'?(pr<.5?'mound':'hand'):(pr<.5?'sprout':'sprout2');
-          key='g-'+stage+'-'+(p.w?1:0)+'-'+Math.round(pr*100);
-          html='<div class="art">'+art(stage)+'</div>'+(p.w?'<span class="wet">'+art('drop')+'</span>':'')+'<div class="bar"><div style="width:'+(pr*100)+'%"></div></div>';
-          label=s.name+' growing, '+fmt(remaining(p))+' left';
+          key='g-'+s.id+'-'+stage+'-'+(p.w?1:0);grow=[pr,clock(remaining(p))];
+          html='<div class="art">'+art(stage)+'</div><span class="wet'+(p.w?'':' dry')+'">'+art('drop')+'</span><span class="tm"></span><div class="bar"><div style="width:'+(pr*100)+'%"></div></div>';
+          label=s.name+' growing, '+fmt(remaining(p))+' left'+(p.w?'':', tap to water');
         }
       }
     }
-    if(d.dataset.k!==key){d.dataset.k=key;d.className=cls;d.innerHTML=html;d.setAttribute('aria-label',label)}
+    // Only rebuild a plot when what's in it changes; the bar and countdown are updated in place
+    if(d.dataset.k!==key){d.dataset.k=key;d.className=cls;d.innerHTML=html}
+    if(grow){d.querySelector('.bar>div').style.width=(grow[0]*100)+'%';const tm=d.querySelector('.tm');if(tm.textContent!==grow[1])tm.textContent=grow[1]}
+    if(d.getAttribute('aria-label')!==label)d.setAttribute('aria-label',label);
   });
   const readyN=S.plots.filter(p=>plotState(p)==='ready').length, wiltN=S.plots.filter(p=>plotState(p)==='withered').length;
   const hb=$('harvestAll');hb.disabled=!readyN&&!wiltN;
@@ -200,12 +233,12 @@ function tapPlot(i,el){
 
 function harvest(i,el,quiet){
   const p=S.plots[i];const s=seed(p.seed);
-  if(s.type==='crop'){S.coins+=s.sell;gainXP(s.xp);S.stats.harvests++;el&&floatAt(el,'+'+s.sell+mi('coin'));if(!quiet)sfx.coin()}
+  if(s.type==='crop'){S.coins+=s.sell;gainXP(s.xp);S.stats.harvests++;if(el){floatAt(el,'+'+s.sell+mi('coin'));popArt(s.id,el);coinsFrom(el,quiet?1:Math.min(4,1+Math.floor(s.sell/60)))}if(!quiet)sfx.coin()}
   else{
     if(S.horde.length>=hordeCap()){if(!quiet){toast('Your horde is full ('+hordeCap()+'). Raid a town or release a zombie.');sfx.bad()}return false}
     const mut=Math.random()<MUTANT;
     S.horde.push({id:S.zid++,s:s.id,mut});gainXP(s.xp);S.stats.raised++;if(mut)S.stats.mutants++;
-    el&&floatAt(el,mut?mi('sparkle')+'Mutant!':'+1 '+mi(s.id));
+    if(el){floatAt(el,mut?mi('sparkle')+'Mutant!':'+1 '+mi(s.id));const tab=document.querySelector('nav button[data-v=horde]');flyArt(s.id,el,tab,{spin:180,dur:780,done:()=>bump(tab)})}
     if(!quiet){sfx.raise();if(mut)toast('A mutant '+s.name+' rose from the dirt! +50% stats')}
   }
   S.plots[i]={};buzz(12);return true;
@@ -226,7 +259,7 @@ function seedPicker(i){
       const lock=S.level<s.lvl;const afford=S.coins>=s.cost;
       return '<div class="row'+(lock?' lock':'')+'"><div class="em">'+art(s.id)+'</div><div class="info"><b>'+s.name+'</b>'+
         (lock?'Unlocks at level '+s.lvl:fmt(s.time)+(s.type==='crop'?' · sells for '+s.sell+' · profit +'+(s.sell-s.cost)+'<br>Withers '+fmt(witherWindow(s))+' after ripening':' · attack '+s.atk+' · health '+s.hp+'<br><span class="ab">'+s.abName+'</span> '+s.abTxt))+
-        (!lock&&empties>1&&S.coins>=s.cost*2?'<br><a href="#" style="color:var(--green)" onclick="event.preventDefault();plantAll(\''+s.id+'\')">Fill all empty plots</a>':'')+
+        (!lock&&empties>1&&S.coins>=s.cost*2?'<br><button class="mini" onclick="plantAll(\''+s.id+'\')">Plant '+Math.min(empties,Math.floor(S.coins/s.cost))+' at once · '+Math.min(empties,Math.floor(S.coins/s.cost))*s.cost+' coins</button>':'')+
         '</div><button '+(lock||!afford?'disabled':'')+' onclick="plant('+i+',\''+s.id+'\')">'+mi('coin')+' '+s.cost+'</button></div>'}).join('')).join('');
   openSheet('<h3>'+mi('sprout')+'Plant something</h3>'+rows);
 }
@@ -332,7 +365,7 @@ function settleLosses(mine){
 }
 
 // ================= Raids =================
-let fighting=false,skip=false;
+let fighting=false;
 const townMult = i => 1+.2*Math.min(wins(i),10);
 const foePower = (t,i) => t.foes.reduce((a,f)=>a+unitPower(f[1]*townMult(i),f[2]*townMult(i),FOES[f[0]].ab),0);
 const loot = (t,i) => wins(i)?{coins:Math.round(t.coins*.6*(1+.1*wins(i))),bones:Math.ceil(t.bones/2),xp:Math.round(t.xp*.5)}:{coins:t.coins,bones:t.bones,xp:t.xp};
@@ -341,7 +374,7 @@ function renderRaid(){
   if(fighting)return;
   $('raidPick').style.display='';$('battle').style.display='none';
   const best=power(strongest(squadCap()));
-  $('raidPick').innerHTML='<div class="hint">Best squad power: <b style="color:var(--ink)">'+Math.round(best)+'</b> · Squad size: <b style="color:var(--ink)">'+squadCap()+'</b><br>Fallen zombies are usually lost. Towns rebuild stronger every time you overrun them.</div>'+
+  $('raidPick').innerHTML='<div class="hint">Best squad power: <b style="color:var(--ink)">'+Math.round(best)+'</b> · Squad size: <b style="color:var(--ink)">'+squadCap()+'</b><br>'+(S.horde.length?'Fallen zombies are usually lost. Towns rebuild stronger every time you overrun them.':'<b style="color:var(--gold)">You have no zombies yet.</b> Plant a zombie seed on the Farm, harvest it, then come back to raid.')+'</div>'+
     mobRow()+
     TOWNS.map((t,i)=>{
       const lock=S.level<t.lvl||(i>0&&!wins(i-1));const fp=foePower(t,i);const o=odds(best/fp);const L=loot(t,i);
@@ -373,23 +406,72 @@ function toggleSquad(ti,id){
   drawSquad(ti);
 }
 
-function unitHTML(u,i,side,hp){if(hp===undefined)return '';return '<div class="u'+(side==='f'?' foe':'')+(u.mut?' mut':'')+(hp<=0?' dead':'')+'" id="'+side+i+'"><div class="a">'+art(u.k)+'</div><div class="hp"><div style="width:'+Math.max(0,100*hp/u.max)+'%"></div></div></div>'}
+// Each fighter is a small upright picture standing on the tilted battlefield, with a health bar over its head.
+function unitHTML(u,i,side){return '<div class="u'+(side==='f'?' foe':'')+(u.mut?' mut':'')+'" id="'+side+i+'"><div class="b"><div class="hp"><div></div></div><div class="a">'+art(u.k)+'</div></div><div class="fx"></div></div>'}
+const stepTime = () => S.fast?250:520;
+let battleSkip=null;
 function playBattle(title,mine,foes,result,onDone){
-  fighting=true;skip=false;
-  $('raidPick').style.display='none';$('battle').style.display='';$('battleDone').style.display='none';$('skipBtn').style.display='';
-  $('vsTxt').textContent=title;$('log').innerHTML='';
-  const draw=hp=>{$('mine').innerHTML=mine.map((u,i)=>unitHTML(u,i,'m',hp[0][i])).join('');$('foes').innerHTML=foes.map((u,i)=>unitHTML(u,i,'f',hp[1][i])).join('')};
-  draw([mine.map(u=>u.max),foes.map(u=>u.summoned?undefined:u.max)]);
-  const lines=[];let k=0;
-  const finish=()=>{const last=result.steps[result.steps.length-1];if(last)draw(last.hp);$('log').innerHTML=lines.slice(-30).join('<br>');fighting=false;onDone(m=>{lines.push(m);const l=$('log');l.innerHTML=lines.slice(-30).join('<br>');l.scrollTop=1e9});$('battleDone').style.display='';$('skipBtn').style.display='none'};
-  (function next(){
-    if(skip){while(k<result.steps.length)lines.push(result.steps[k++].text);return finish()}
+  fighting=true;
+  $('raidPick').style.display='none';$('battle').style.display='';$('battleDone').style.display='none';$('skipBtn').style.display='';$('speedBtn').style.display='';
+  $('speedBtn').textContent='Speed ×'+(S.fast?2:1);
+  $('vsTxt').textContent=title;$('log').innerHTML='';$('result').className='';$('result').innerHTML='';$('mine').innerHTML='';$('foes').innerHTML='';
+  const anim=motionOK(),LEAN=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lean'))||50;
+  $('skyline').innerHTML=[0,1,2,3,4].map(()=>'<span>'+art('house')+'</span>').join('');
+  const els={m:[],f:[]},shown={m:[],f:[]},list=side=>side==='m'?mine:foes;
+  const add=(u,i,side,drop)=>{
+    const box=$(side==='m'?'mine':'foes');box.insertAdjacentHTML('beforeend',unitHTML(u,i,side));
+    const el=box.lastChild;els[side][i]=el;shown[side][i]=u.max;
+    if(drop&&anim)el.animate([{transform:'translate3d(0,0,150px)',opacity:0},{transform:'translate3d(0,0,0)',opacity:1,offset:.7},{transform:'translate3d(0,0,14px)',offset:.85},{transform:'translate3d(0,0,0)'}],{duration:420,easing:'ease-in'});
+  };
+  mine.forEach((u,i)=>add(u,i,'m'));foes.forEach((u,i)=>{if(!u.summoned)add(u,i,'f')});
+  // A number or word pops up over a fighter's head
+  const pop=(el,text,cls)=>{
+    const sp=document.createElement('span');sp.className='dmg '+(cls||'');sp.textContent=text;el.querySelector('.fx').appendChild(sp);
+    if(anim)sp.animate([{transform:'translate(-50%,8px) scale(.4)',opacity:0},{transform:'translate(-50%,-16px) scale(1.3)',opacity:1,offset:.22},{transform:'translate(-50%,-22px) scale(1)',opacity:1,offset:.6},{transform:'translate(-50%,-44px) scale(.9)',opacity:0}],{duration:850,easing:'ease-out'}).onfinish=()=>sp.remove();
+    else setTimeout(()=>sp.remove(),800);
+  };
+  // The attacker jumps across the field at its target and lands back in place
+  const lunge=(A,T,dur)=>{if(!anim)return;const dx=(T.offsetLeft-A.offsetLeft)*.74,dy=(T.offsetTop-A.offsetTop)*.74;
+    A.animate([{transform:'translate3d(0,0,0)'},{transform:'translate3d('+dx*.55+'px,'+dy*.55+'px,46px)',offset:.3},{transform:'translate3d('+dx+'px,'+dy+'px,8px)',offset:.5},{transform:'translate3d('+dx*.4+'px,'+dy*.4+'px,26px)',offset:.75},{transform:'translate3d(0,0,0)'}],{duration:dur,easing:'ease-in-out'})};
+  const hop=A=>{if(anim)A.animate([{transform:'translate3d(0,0,0)'},{transform:'translate3d(0,0,26px)'},{transform:'translate3d(0,0,0)'}],{duration:300,easing:'ease-out'})};
+  // A fighter that takes a hit rocks back, away from whoever hit it, and flashes
+  const recoil=(el,side)=>{if(anim)el.querySelector('.b').animate([{transform:'rotateX(-'+LEAN+'deg)'},{transform:'rotateX(-'+(side==='m'?LEAN+30:LEAN-26)+'deg)',filter:'brightness(2.4)',offset:.3},{transform:'rotateX(-'+LEAN+'deg)'}],{duration:280,easing:'ease-out'})};
+  const shake=()=>{const st=$('stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake')};
+  // Bring every health bar up to date. Anyone whose health changed gets a number; anyone at zero tips over.
+  const apply=(hp,crit,quiet)=>[['m',hp[0]],['f',hp[1]]].forEach(([side,arr])=>arr.forEach((v,i)=>{
+    const u=list(side)[i];if(!els[side][i])add(u,i,side,!quiet);
+    const el=els[side][i],was=shown[side][i];shown[side][i]=v;
+    el.querySelector('.hp>div').style.width=Math.max(0,100*v/u.max)+'%';
+    if(v<=0)el.classList.add('dead');
+    if(quiet||v===was)return;
+    if(v<was){pop(el,String(v-was),crit?'crit':'');if(v>0)recoil(el,side)}else pop(el,'+'+(v-was),'heal');
+  }));
+  const lines=[];let k=0,timer=0,over=false;
+  const showLog=()=>{const l=$('log');l.innerHTML=lines.slice(-30).join('<br>');l.scrollTop=1e9};
+  function finish(){
+    if(over)return;over=true;clearTimeout(timer);battleSkip=null;
+    while(k<result.steps.length)lines.push(result.steps[k++].text);
+    const last=result.steps[result.steps.length-1];if(last)apply(last.hp,false,true);
+    showLog();fighting=false;
+    els[result.win?'m':'f'].forEach(el=>{if(el&&!el.classList.contains('dead'))el.classList.add('cheer')});
+    onDone(m=>{lines.push(m);showLog()},(html,win)=>{const r=$('result');r.innerHTML='<div class="card '+(win?'win':'lose')+'">'+html+'</div>';r.className='show'});
+    $('battleDone').style.display='';$('skipBtn').style.display='none';$('speedBtn').style.display='none';
+  }
+  function step(){
+    if(over)return;
     if(k>=result.steps.length)return finish();
-    const st=result.steps[k++];lines.push(st.text);draw(st.hp);
-    const l=$('log');l.innerHTML=lines.slice(-30).join('<br>');l.scrollTop=1e9;
-    if(st.t&&st.kind==='hit'){const el=$(st.t[0]+st.t[1]);el&&el.classList.add('hit');sfx.hit()}
-    setTimeout(next,360);
-  })();
+    const st=result.steps[k++],d=stepTime();lines.push(st.text);showLog();
+    const A=st.a&&els[st.a[0]][st.a[1]],T=st.t&&els[st.t[0]][st.t[1]],crit=/critical/.test(st.text);
+    if((st.kind==='hit'||st.kind==='block')&&A&&T){
+      lunge(A,T,d*.85);
+      timer=setTimeout(()=>{if(over)return;apply(st.hp,crit);if(st.kind==='block')pop(T,'Blocked!','txt');sfx.hit();if(crit&&anim)shake();timer=setTimeout(step,d*.6)},d*.4);
+    }else{
+      if(A)hop(A);if(st.kind==='stun'&&A)pop(A,'Wrapped!','txt');
+      apply(st.hp,false);timer=setTimeout(step,d*.8);
+    }
+  }
+  battleSkip=finish;
+  timer=setTimeout(step,anim?650:80);   // a beat to take in the line-up before the first swing
 }
 function raid(ti){
   const t=TOWNS[ti];const squad=S.horde.filter(z=>squadSel.includes(z.id));if(!squad.length)return;
@@ -397,17 +479,23 @@ function raid(ti){
   view='raid';setView();
   const mine=squad.map(makeZ),foes=t.foes.map((f,i)=>makeFoe(f,i,townMult(ti)));
   const res=simulate(mine,foes);
-  playBattle('Raiding '+t.name,mine,foes,res,log=>{
-    const {lost,crawled}=settleLosses(mine);
+  playBattle('Raiding '+t.name,mine,foes,res,(log,banner)=>{
+    const {lost,crawled}=settleLosses(mine);let card;
     if(res.win){const L=loot(t,ti);S.coins+=L.coins;S.bones+=L.bones;gainXP(L.xp);S.beaten[ti]=wins(ti)+1;S.stats.wins++;
-      log('<b style="color:var(--green)">Victory! +'+L.coins+' coins, +'+L.bones+' bones, +'+L.xp+' XP</b>');log(t.name+' will rebuild stronger.');toast(t.name+' has been overrun!');sfx.win();buzz([30,50,30])}
-    else{log('<b style="color:var(--red)">The townsfolk held them off…</b>');sfx.lose()}
+      log('<b style="color:var(--green)">Victory! +'+L.coins+' coins, +'+L.bones+' bones, +'+L.xp+' XP</b>');log(t.name+' will rebuild stronger.');toast(t.name+' has been overrun!');sfx.win();buzz([30,50,30]);
+      card='<h2>Victory!</h2><div class="loot"><span class="chip">'+mi('coin')+'+'+L.coins+'</span><span class="chip">'+mi('bone')+'+'+L.bones+'</span><span class="chip">'+mi('star')+'+'+L.xp+' XP</span></div>'}
+    else{log('<b style="color:var(--red)">The townsfolk held them off…</b>');sfx.lose();
+      card='<h2>Driven off</h2><p>The townsfolk held the line. Raise a stronger squad and try again.</p>'}
     if(lost)log(lost+' zombie'+(lost>1?'s':'')+' fell for good.');
     if(crawled)log(crawled+' fallen zombie'+(crawled>1?'s':'')+' crawled back home.');
+    const tail=[lost?lost+' zombie'+(lost>1?'s':'')+' fell for good':'',crawled?crawled+' crawled back home':''].filter(Boolean).join(' · ');
+    banner(card+(tail?'<p>'+tail+'</p>':''),res.win);
+    if(res.win)coinsFrom($('result'),4);
     save();hud();
   });
 }
-$('skipBtn').onclick=()=>{skip=true};
+$('skipBtn').onclick=()=>{battleSkip&&battleSkip()};
+$('speedBtn').onclick=e=>{S.fast=!S.fast;save();e.currentTarget.textContent='Speed ×'+(S.fast?2:1)};
 $('battleDone').onclick=()=>refresh();
 
 // ================= Torch mobs (towns fight back) =================

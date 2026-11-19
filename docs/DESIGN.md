@@ -60,6 +60,14 @@ Each town must be overrun before the next unlocks. After each win the town rebui
 - Abilities: **quick** (chance of a second swing), **armor** (flat damage reduction), **stun/wrap** (target skips its next turn), **drain** (heal half of damage dealt), **heal** (Hedge Wizard heals an ally under 60% health, 60% of the time), **cleave** (hit two targets), **rally** (allies +1 attack when it falls), **shield** (blocks first hit), **backup** (summons a Guard Dog once below half health), **taunt** (45% chance to take a hit aimed at an ally).
 - Odds labels compare squad power to defense: Easy ≥ 1.5×, Fair ≥ 1.15×, Risky ≥ 0.9×, otherwise Deadly.
 
+## How it looks and moves (3D)
+- The 3D is done with CSS only (no 3D library): the farm and the battlefield are flat boards leaned back with `rotateX`, and every picture standing on them is turned back by the same angle so it faces the player.
+- Two numbers in `index.html` control the lean: `--tilt` (farm, 26°) and `--lean` (battlefield, 50°).
+- Farm plots are only rebuilt when their contents change, so their animations keep running; the progress bar and countdown are updated in place.
+- Battle playback reads the same step list the engine has always produced. The picture side (leaps, knock-backs, numbers, falling over) lives in `playBattle()` in `game.js` and never changes who wins.
+- Battle speed: 520 ms per step at ×1, 250 ms at ×2 (`S.fast`, saved).
+- Everything animated respects the phone's "reduce motion" setting.
+
 ## Torch mobs
 - Start after your first overrun town. Arrive every 7–12 minutes (also resolved when you reopen the game).
 - Size: 2 + level ÷ 2.5 (max 6). Stronger with level and with total town rebuilds.

@@ -34,7 +34,7 @@ It installs to the home screen on iPhone (Safari → Share → Add to Home Scree
 1. **Bump versions on every release that changes `art.js` or `game.js`**, or phones keep the old copy:
    - in `index.html`: `art.js?v=N` and `game.js?v=N`
    - in `sw.js`: `CACHE = 'grave-acres-vN'` and the same `?v=N` entries in `FILES`
-   (Current: **v8**.)
+   (Current: **v9**.)
 2. **Never break old saves.** Saves live in `localStorage` under `graveacres.v1`. New fields go in
    `fresh()` and are filled in by `migrate()` in `game.js`. Keep seed/zombie `id`s stable
    (`radish`, `corn`, `pump`, `egg`, `mush`, `shamb`, `sprint`, `brute`, `mummy`, `vamp`).
@@ -42,6 +42,8 @@ It installs to the home screen on iPhone (Safari → Share → Add to Home Scree
    balance change, `npm run balance` (targets in `docs/DESIGN.md`).
 4. **Art must be original** and follow `docs/ART-GUIDE.md`. Crops are spooky but PG.
 5. Keep it a single static site: no build step, no server, no paid services.
+   The 3D look is plain CSS (`rotateX`, `perspective`, `preserve-3d`), so don't add a 3D library.
+   An element with `overflow:hidden`, `opacity` below 1 or a `filter` flattens the 3D inside it, so put those on the innermost picture, not on a plot or fighter wrapper.
 6. Commit with clear messages and push to `main`. The live site updates in about a minute.
    Then confirm the new `?v=` files load at the live URL.
 
