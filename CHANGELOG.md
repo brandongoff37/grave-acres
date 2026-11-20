@@ -2,14 +2,22 @@
 
 
 
+
+## v16 — sound comes back on its own (2026-11-20)
+- **Fixed: no sound even with both volumes up.** Phones can pause a game's sound by themselves (turning the screen, a call, switching apps), and iPhones call that "interrupted" rather than "suspended", which the game didn't check for. Any tap now wakes the sound back up, and so does turning the phone.
+- On iPhones the game now tells the phone it plays media, so the sound isn't muted by the ring/silent switch (Safari 16.4 and later).
+- Play starts the sound first and only then asks the screen to turn sideways.
+
 ## v15 — let the installed app turn sideways (2026-11-20)
 - **Fixed: the installed app stayed upright when the phone was turned.** Its settings file (`manifest.json`) still said portrait only, which pins an installed app upright no matter what the game asks for. It now says `any`, so the screen follows the phone. On Android the game still asks for upright on the title screen and sideways after Play.
+
 ## v14 — made for playing sideways (2026-11-20)
 - **Landscape is now the main layout on phones.** The Harvest, Horde and Raid tabs become a rail down the left side, the graveyard fills the middle, and the goal, Harvest all button and tips sit in a column on the right. Nothing needs scrolling on the Harvest screen.
 - The graveyard is laid out 5 graves across and 4 deep in landscape, with wider, shallower graves and a steeper view, so it fits a short, wide screen. Its width is capped by the screen's height so the front row never falls off the bottom.
 - Raid: the battlefield on the left, the play-by-play and buttons on the right. Horde and squad pickers show more zombies per row. The title screen stays an upright (portrait) screen.
 - The title screen is held upright and the game is played sideways. On the installed Android app the screen turns for you: upright on the title screen, sideways once you tap Play (`screen.orientation.lock`). Other phones can't be turned by a web page, so the title screen says "Tap Play, then turn your phone sideways." Portrait play still works.
 - Playtest: new checks that the graveyard fits on two landscape phone sizes.
+
 ## v13 — the graveyard, seen from the side (2026-11-20)
 - The camera now stands off to one side and lower down, so the yard reads as a real 3D patch of ground. The whole graveyard no longer sways.
 - Wind instead: the dead oak bends in gusts, and wooden grave markers rock gently, each on its own beat. Stone stays still.

@@ -94,6 +94,8 @@ $('logo').innerHTML=art('hand');
 let AC,MG,SG,NOISE,PIPE,PIPE2;
 function audio(){
   if(AC)return AC;
+  // iPhones mute web sound when the ring/silent switch is on, unless the page says it plays media like a video or song would
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
   try{AC=new (window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();SG=AC.createGain();
     // Everything passes through a filter that removes rumble too deep for phone speakers (it makes them buzz),
     // then a limiter that stops loud moments from crackling.
@@ -156,8 +158,13 @@ function musicTick(){
   while(music.next<AC.currentTime+.45){musicStep(music.step++,music.next);music.next+=60/SONG.bpm/4}
 }
 // Phones only allow sound after a tap, so the music starts from the Play button on the title screen
-function startMusic(){if(!audio())return;if(AC.state==='suspended')AC.resume();if(music.on)return;music.on=true;music.step=0;music.timer=setInterval(musicTick,70)}
+function startMusic(){if(!audio())return;if(AC.state!=='running')AC.resume().catch(()=>{});if(music.on)return;music.on=true;music.step=0;music.timer=setInterval(musicTick,70)}
 document.addEventListener('visibilitychange',()=>{if(!AC)return;if(document.hidden)AC.suspend();else if(music.on)AC.resume()});
+// Phones can pause the sound on their own (a call, turning the screen, switching apps). iPhones call that
+// "interrupted", not "suspended". Any tap wakes it back up, since phones only allow starting sound from a tap.
+function wakeAudio(){if(AC&&AC.state!=='running'&&AC.state!=='closed'&&!document.hidden&&(music.on||S.sound))AC.resume().catch(()=>{})}
+['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,wakeAudio,{passive:true}));
+addEventListener('orientationchange',()=>setTimeout(wakeAudio,300));
 // The sound controls, used on the title screen and in the menu
 function soundUI(){const row=(label,k)=>'<label class="vol"><span>'+label+'</span><input type="range" min="0" max="100" step="5" data-vol="'+k+'" value="'+Math.round(S[k]*100)+'" aria-label="'+label+' volume"><output>'+Math.round(S[k]*100)+'%</output></label>';
   return '<div class="snd">'+row('Music','musicVol')+row('Sound effects','sfxVol')+'<button class="sndMute" style="width:100%"></button></div>'}
@@ -714,8 +721,8 @@ function titlePanel(kind){
 $('tSound').onclick=()=>{startMusic();titlePanel('sound')};
 $('tHow').onclick=()=>titlePanel('how');
 $('playBtn').onclick=()=>{
-  lockOrientation('landscape');
   startMusic();sfx.coin();started=true;
+  lockOrientation('landscape');   // after the sound has started, so turning the screen can't get in its way
   const t=$('title');t.classList.add('gone');setTimeout(()=>{t.hidden=true},motionOK()?450:0);
   refresh();if(!greeted){greeted=true;greet()}
 };
