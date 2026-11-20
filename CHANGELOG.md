@@ -1,5 +1,12 @@
 # Changelog
 
+## v12 — Cleaner sound
+- **Fixed static and distortion in the audio.** Three causes, all fixed:
+  - The organ's lowest notes were deeper than a phone speaker can play, which makes small speakers buzz. The bass now sits an octave higher, and a filter removes anything too deep (rumble below 80 Hz went from 38% of the sound to 2%).
+  - Each organ note was built from four or five separate sound sources, up to 35 starting at the same instant, which can make a phone stutter and crackle. Each note is now a single source with the organ tone built in.
+  - Sound effects and the heartbeat started and stopped instantly, which makes a tiny click each time. They now fade in and out over a few thousandths of a second.
+- A limiter on the final output stops music and sound effects from overloading when they play together, and the volume sliders glide instead of stepping.
+
 ## v11 — Title screen, music and volume controls
 - **Title screen:** the game now opens on a start menu with the Grave Acres logo, a Play (or Continue) button, Sound settings and How to play. You can get back to it from the menu.
 - **Background music:** "Midnight at Grave Acres", an original slow, ominous organ piece in the style of old pipe-organ music: a deep held bass note, held chords, and a creeping tune with quick flicks and a long tumbling run, echoing like a stone hall, over a slow heartbeat. It is made by the phone's own sound chip, so there is no music file to download and it works offline. It starts when you tap Play and pauses when you leave the game.

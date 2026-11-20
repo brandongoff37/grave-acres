@@ -91,18 +91,26 @@ $('logo').innerHTML=art('hand');
 // ================= Sound =================
 // Everything is made by the phone's own sound chip (Web Audio), so there are no sound files to download.
 // Two volume knobs: MG for music, SG for sound effects. S.sound is the master on/off switch.
-let AC,MG,SG,NOISE;
+let AC,MG,SG,NOISE,PIPE,PIPE2;
 function audio(){
   if(AC)return AC;
-  try{AC=new (window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();SG=AC.createGain();MG.connect(AC.destination);SG.connect(AC.destination);
+  try{AC=new (window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();SG=AC.createGain();
+    // Everything passes through a filter that removes rumble too deep for phone speakers (it makes them buzz),
+    // then a limiter that stops loud moments from crackling.
+    const cut=AC.createBiquadFilter(),lim=AC.createDynamicsCompressor();cut.type='highpass';cut.frequency.value=85;cut.Q.value=.5;
+    lim.threshold.value=-6;lim.knee.value=6;lim.ratio.value=12;lim.attack.value=.004;lim.release.value=.25;
+    MG.connect(cut);SG.connect(cut);cut.connect(lim);lim.connect(AC.destination);
+    // The organ pipe sound as one ready-made wave shape, so each note needs only one sound source (many at once made phones stutter)
+    PIPE=AC.createPeriodicWave(new Float32Array(6),new Float32Array([0,1,.5,.22,.16,.05]));
+    PIPE2=AC.createPeriodicWave(new Float32Array(8),new Float32Array([0,1,.5,.3,.16,.1,.03,.05]));
     NOISE=AC.createBuffer(1,AC.sampleRate*.2,AC.sampleRate);const d=NOISE.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;applyVol()}catch(e){AC=null}
   return AC;
 }
-function applyVol(){if(!AC)return;MG.gain.value=S.sound?S.musicVol:0;SG.gain.value=S.sound?S.sfxVol*1.25:0}
+function applyVol(){if(!AC)return;const t=AC.currentTime;MG.gain.cancelScheduledValues(t);SG.gain.cancelScheduledValues(t);MG.gain.setTargetAtTime(S.sound?S.musicVol:0,t,.03);SG.gain.setTargetAtTime(S.sound?S.sfxVol*1.25:0,t,.03)}   // glide to the new volume so sliders don't crackle
 function tone(f,d=.09,type='square',v=.035,delay=0){
   if(!S.sound||!S.sfxVol||!audio())return;
   try{const t=AC.currentTime+delay;const o=AC.createOscillator(),g=AC.createGain();
-    o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(SG);o.start(t);o.stop(t+d+.02)}catch(e){}
+    o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+d+.006);g.gain.linearRampToValueAtTime(0,t+d+.02);o.connect(g);g.connect(SG);o.start(t);o.stop(t+d+.03)}catch(e){}   // fades in and out over a few thousandths of a second, so there is no click
 }
 // ---- Background music: "Midnight at Grave Acres", an original slow, ominous pipe-organ piece in D minor ----
 // Written in the style of old organ music: a deep pedal note held under each bar, a held chord in the middle,
@@ -127,25 +135,25 @@ const hz = m => 440*Math.pow(2,(m-69)/12);
 // One organ pipe sound: several pure tones stacked an octave or so apart (like pulling out organ stops),
 // swelling in and dying away slowly. "bite" adds a thin buzzy edge so it still sounds like an arcade machine.
 function organ(m,t,d,v,bite){
-  const g=AC.createGain(),f=hz(m);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.045);g.gain.setValueAtTime(v,Math.max(t+.05,t+d-.06));g.gain.linearRampToValueAtTime(.0001,t+d+.14);g.connect(MG);
-  [[1,1,'sine'],[2,.5,'sine'],[3,.22,'sine'],[4,.16,'triangle']].concat(bite?[[1,bite,'square']]:[]).forEach(([mult,amp,type])=>{
-    const o=AC.createOscillator(),a=AC.createGain();o.type=type;o.frequency.setValueAtTime(f*mult,t);a.gain.value=amp;o.connect(a);a.connect(g);o.start(t);o.stop(t+d+.18)});
+  const o=AC.createOscillator(),g=AC.createGain();o.setPeriodicWave(bite?PIPE2:PIPE);o.frequency.setValueAtTime(hz(m),t);
+  g.gain.setValueAtTime(0,t);v*=.7;g.gain.linearRampToValueAtTime(v,t+.05);g.gain.setValueAtTime(v,Math.max(t+.06,t+d-.06));g.gain.linearRampToValueAtTime(0,t+d+.16);
+  o.connect(g);g.connect(MG);o.start(t);o.stop(t+d+.2);
 }
 // A soft, deep thump, used as a slow heartbeat
-function mThump(t,v){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(38,t+.16);
-  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(g);g.connect(MG);o.start(t);o.stop(t+.25)}
+function mThump(t,v){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(70,t+.16);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.24);g.gain.linearRampToValueAtTime(0,t+.26);o.connect(g);g.connect(MG);o.start(t);o.stop(t+.28)}
 function musicStep(n,t){
   const st=60/SONG.bpm/4,bar=Math.floor(n/16)%8,i=n%16,[pedal,chord]=SONG.chords[bar];
-  if(i===0){organ(pedal,t,st*15.5,.07);organ(pedal+12,t,st*15.5,.028);   // the octave above is what small phone speakers can actually play
-    chord.forEach(m=>organ(m,t,st*15.5,.017))}                 // pedal note and chord held for the whole bar
-  for(const [s,m,len] of SONG.lead[bar]) if(s===i){organ(m,t,st*len*.92,.03,.1);organ(m,t+st*3,st*len*.8,.008);organ(m,t+st*6,st*len*.7,.004)}   // tune, with echoes like a big stone hall
-  if(i===0)mThump(t,.1);if(i===3)mThump(t,.06);                                                    // heartbeat: lub-dub
+  if(i===0){organ(pedal+12,t,st*15.5,.085);organ(pedal,t,st*15.5,.03);   // the bass sits an octave up where phone speakers can play it cleanly; the deep note underneath is kept quiet
+    chord.forEach(m=>organ(m,t,st*15.5,.024))}                 // pedal note and chord held for the whole bar
+  for(const [s,m,len] of SONG.lead[bar]) if(s===i){organ(m,t,st*len*.92,.042,1);organ(m,t+st*3,st*len*.8,.011);organ(m,t+st*6,st*len*.7,.005)}   // tune, with echoes like a big stone hall
+  if(i===0)mThump(t,.07);if(i===3)mThump(t,.04);                                                    // heartbeat: lub-dub
 }
 function musicTick(){
   if(!music.on||!AC)return;
   if(!S.sound||!S.musicVol||document.hidden){music.next=0;return}                // silent: don't waste battery
-  if(music.next<AC.currentTime)music.next=AC.currentTime+.08;
-  while(music.next<AC.currentTime+.3){musicStep(music.step++,music.next);music.next+=60/SONG.bpm/4}
+  if(music.next<AC.currentTime+.03)music.next=AC.currentTime+.1;   // never start a note late: a late note starts with a click
+  while(music.next<AC.currentTime+.45){musicStep(music.step++,music.next);music.next+=60/SONG.bpm/4}
 }
 // Phones only allow sound after a tap, so the music starts from the Play button on the title screen
 function startMusic(){if(!audio())return;if(AC.state==='suspended')AC.resume();if(music.on)return;music.on=true;music.step=0;music.timer=setInterval(musicTick,70)}
