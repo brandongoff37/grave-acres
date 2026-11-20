@@ -1,6 +1,9 @@
 # Changelog
 
 
+
+## v15 — let the installed app turn sideways (2026-11-20)
+- **Fixed: the installed app stayed upright when the phone was turned.** Its settings file (`manifest.json`) still said portrait only, which pins an installed app upright no matter what the game asks for. It now says `any`, so the screen follows the phone. On Android the game still asks for upright on the title screen and sideways after Play.
 ## v14 — made for playing sideways (2026-11-20)
 - **Landscape is now the main layout on phones.** The Harvest, Horde and Raid tabs become a rail down the left side, the graveyard fills the middle, and the goal, Harvest all button and tips sit in a column on the right. Nothing needs scrolling on the Harvest screen.
 - The graveyard is laid out 5 graves across and 4 deep in landscape, with wider, shallower graves and a steeper view, so it fits a short, wide screen. Its width is capped by the screen's height so the front row never falls off the bottom.
