@@ -1,5 +1,14 @@
 # Changelog
 
+## v10 — The graveyard
+- **The farm is now a graveyard.** Each plot is a grave: a bed of dirt with its own headstone (four designs). Empty plots are open graves, zombie seeds stir under the dirt with glowing eyes, and ground you haven't bought yet is overgrown with brambles (and takes less room on screen).
+- **More 3D:** an iron fence and stone gate stand along the back, fences run down both sides, a dead tree with a crow creaks in the corner, lanterns flicker at the front, fog drifts just above the ground and wisps float through it. The view sways slowly so near and far things shift against each other. Headstones thump down when you plant.
+- **Torch mobs are now a real fight.** If a mob arrives while you're playing, you watch your defenders fight it at the graveyard gate, with the same speed and skip buttons as a raid. If it came while the game was closed you still get the short report.
+- **Battles:** every hit sends a shockwave ring across the ground (gold for critical hits) and fallen fighters are knocked into the air before they land.
+- **Horde:** tapping a zombie now shows its attack, health and what its ability does, with Release as a choice instead of the only thing a tap does. Zombies cast shadows on their cards.
+- Clearer messages when you can't afford a plot (it tells you how many coins you're short).
+- **For developers:** `npm run bump` raises the version number in every file that needs it, `npm run check` runs every check in one go, and the playtest now fails loudly (non-zero exit) and also checks the graveyard, the mob battle, the screen fit and that version numbers match.
+
 ## v9 — 3D look and clearer play
 - **Farm in 3D:** the field leans back like a game board, soil beds are raised, and crops stand up on them. New plants drop in, ripe crops hop, harvested crops jump out toward you, and coins spin up to your purse. Raised zombies fly to the Horde tab.
 - **Battles in 3D:** fights play out on a tilted battlefield with the town's rooftops behind it. Attackers leap across the field, hits knock fighters back with damage numbers, fallen fighters tip over and lie flat, and the winners cheer. Critical hits shake the screen.

@@ -68,7 +68,14 @@ Each town must be overrun before the next unlocks. After each win the town rebui
 - Battle speed: 520 ms per step at ×1, 250 ms at ×2 (`S.fast`, saved).
 - Everything animated respects the phone's "reduce motion" setting.
 
+### The graveyard (farm screen)
+- `#yard` is the leaning ground. Inside it: `.gy-back` (fence, gate, tree standing along the back), two `.gy-side` fences that stand straight up along the edges, `#field` (the 20 plots), two `.gy-lamp` lanterns, `.fog` and two `.wisp` lights.
+- Each open plot is a grave: `.plot` (the dirt bed) with a `.hs` headstone standing at its head. The headstone design is picked from the plot's position, so it never changes.
+- Locked plots are flat and shorter than open ones so new players don't have to scroll.
+- `#fieldWrap` slowly moves its `perspective-origin` left and right (the "look" animation), which is what makes near and far things shift.
+
 ## Torch mobs
+- If the game is open when a mob arrives, the fight is shown on the battlefield (`playBattle(..., atHome=true)`), then the result is applied. If the game was closed, the result is applied straight away and shown as a report.
 - Start after your first overrun town. Arrive every 7–12 minutes (also resolved when you reopen the game).
 - Size: 2 + level ÷ 2.5 (max 6). Stronger with level and with total town rebuilds.
 - **Win:** coins (10 × level), bones (1 + level ÷ 3), XP. **Lose:** 2 planted plots trampled and 15% of coins stolen.

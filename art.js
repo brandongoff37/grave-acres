@@ -118,6 +118,38 @@ const ART = {
     <path d="M29.5 44 C23 42 18 46 17 51 C22 51 27 49 29.5 44Z" fill="#8a6a3a" ${O}/><path d="M31 37 C36 37 39 41 39 46 C34 45 31 42 31 37Z" fill="#a08050" ${O}/>
     <circle cx="44" cy="39" r="6" fill="#6e5a7a" ${O}/><path d="M41 38.5 l2 1.2 M45 39.7 l2 -1.2" stroke="${INK}" stroke-width="1.3" stroke-linecap="round"/><path d="M42 42.5 q2 -1.4 4 0" stroke="${INK}" stroke-width="1.2" fill="none" stroke-linecap="round"/>
     <path d="M20 22 q2 -3 4 0 M47 16 q2 -3 4 0" stroke="#a69fc0" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7"/>`,
+  // ---- graveyard pieces (v10): headstones, stirring dirt, fence, gate, dead tree, lantern, brambles ----
+  stone0: `<path d="M14 62 V27 a18 18 0 0 1 36 0 V62 Z" fill="url(#ga-ts)" ${O}/><path d="M23 30 h18 M25 37 h14 M27 44 h10" stroke="#55507a" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M44 20 l-4 5 l3 4 l-2 4" stroke="#55507a" stroke-width="1.3" fill="none" stroke-linecap="round"/>${shine(22,21,2.6,6,.45,24)}
+    <path d="M12 62 q2 -9 5 -2 q2 -8 5 0 q2 -5 4 2Z M42 62 q3 -8 5 -1 q3 -6 5 1Z" fill="#5ea04a" ${O2}/>`,
+  stone1: `<path d="M25 62 V35 H11 V21 H25 V7 H39 V21 H53 V35 H39 V62 Z" fill="url(#ga-ts)" ${O}/><path d="M32 13 v38 M19 28 h26" stroke="#55507a" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+    ${shine(28,12,1.6,4,.45,0)}<path d="M19 62 q3 -9 6 -1 q2 -6 4 1Z M37 62 q3 -7 5 -1 q2 -5 4 1Z" fill="#5ea04a" ${O2}/>`,
+  stone2: `<path d="M11 62 V27 q0 -6 6 -6 h5 q2 -11 10 -11 q8 0 10 11 h5 q6 0 6 6 V62 Z" fill="url(#ga-ts)" ${O}/>
+    <circle cx="32" cy="24" r="5" fill="none" stroke="#55507a" stroke-width="2"/><path d="M21 36 h22 M23 43 h18 M25 50 h14" stroke="#55507a" stroke-width="2.2" stroke-linecap="round"/>
+    ${shine(18,28,2,5,.4,10)}<path d="M9 62 q3 -8 5 -1 q3 -7 5 1Z M45 62 q2 -9 5 -2 q2 -5 4 2Z" fill="#5ea04a" ${O2}/>`,
+  stone3: `<g transform="rotate(-7 32 40)"><rect x="27" y="7" width="10" height="56" rx="1.5" fill="url(#ga-wd)" ${O}/><rect x="12" y="19" width="40" height="10" rx="1.5" fill="url(#ga-wd)" ${O}/>
+    <path d="M30 34 v20 M34 12 v5 M17 24 h8 M40 23 h8" stroke="#55361c" stroke-width="1.1" stroke-linecap="round"/><circle cx="32" cy="24" r="1.5" fill="${INK}"/><circle cx="32" cy="21" r="1" fill="#f4f6fb" opacity=".6"/></g>
+    <path d="M20 62 q3 -8 5 -1 q2 -6 4 1Z M36 62 q3 -7 5 -1 q2 -5 4 1Z" fill="#5ea04a" ${O2}/>`,
+  dirt: `<path d="M4 60 Q32 28 60 60Z" fill="url(#ga-dt)" ${O}/><path d="M12 56 q4 -3 8 -1 M43 55 q5 -2 9 1" stroke="#2a1a0e" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M19 51 Q32 38 45 51 Q32 57 19 51Z" fill="${INK}"/><circle cx="27" cy="49.5" r="4" fill="url(#ga-eyeG)"/><circle cx="37" cy="49.5" r="4" fill="url(#ga-eyeG)"/><circle cx="27" cy="49.5" r="1.2" fill="${INK}"/><circle cx="37" cy="49.5" r="1.2" fill="${INK}"/>
+    <path d="M30 40 l-3 -6 M34 40 l2 -7 M38 42 l5 -4" stroke="#2a1a0e" stroke-width="1.4" stroke-linecap="round"/><circle cx="14" cy="38" r="2" fill="#6b4a2e" ${O2}/><circle cx="50" cy="35" r="1.6" fill="#6b4a2e" ${O2}/><circle cx="24" cy="30" r="1.3" fill="#6b4a2e" ${O2}/>`,
+  fence: `<g fill="#4d4873" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round">${[8,24,40,56].map(x=>`<path d="M${x-2.2} 64 V16 L${x-4.6} 13 L${x} 3 L${x+4.6} 13 L${x+2.2} 16 V64Z"/>`).join('')}<rect x="-2" y="26" width="68" height="5"/><rect x="-2" y="50" width="68" height="5"/></g>
+    <g stroke="#8a84b4" stroke-width="1" stroke-linecap="round" opacity=".8"><path d="M0 27.4 H64 M0 51.4 H64"/>${[8,24,40,56].map(x=>`<path d="M${x-1} 33 V48 M${x-2.4} 12.5 L${x} 6"/>`).join('')}</g>`,
+  gate: `<path d="M12 24 Q32 -4 52 24" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><path d="M12 24 Q32 -4 52 24" fill="none" stroke="#3a3556" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M32 11 v7" stroke="${INK}" stroke-width="2"/><circle cx="32" cy="23" r="8" fill="url(#ga-glow)"/><rect x="28.5" y="18" width="7" height="9" rx="1.5" fill="url(#ga-fire)" ${O2}/>
+    <rect x="3" y="22" width="13" height="42" fill="url(#ga-ts)" ${O}/><rect x="1" y="17" width="17" height="7" rx="2" fill="url(#ga-ts)" ${O}/><rect x="48" y="22" width="13" height="42" fill="url(#ga-ts)" ${O}/><rect x="46" y="17" width="17" height="7" rx="2" fill="url(#ga-ts)" ${O}/>
+    <path d="M6 34 h7 M5 44 h8 M6 54 h7 M51 34 h7 M51 44 h8 M51 54 h7" stroke="#55507a" stroke-width="1.4" stroke-linecap="round"/>${shine(6,28,1.2,3,.4,0)}${shine(51,28,1.2,3,.4,0)}`,
+  tree: `<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M31 63 C30 50 34 44 31 34 M31 40 C24 34 18 34 11 25 M17 31 C13 31 9 33 5 31 M14 28 C13 23 14 19 12 14 M32 36 C36 28 44 27 50 17 M45 24 C50 24 55 22 59 23 M48 20 C48 14 51 11 51 6 M31 34 C30 26 26 22 28 12 M28.5 19 C25 16 23 13 22 8" stroke="${INK}" stroke-width="6.4"/>
+    <path d="M31 63 C30 50 34 44 31 34 M31 40 C24 34 18 34 11 25 M17 31 C13 31 9 33 5 31 M14 28 C13 23 14 19 12 14 M32 36 C36 28 44 27 50 17 M45 24 C50 24 55 22 59 23 M48 20 C48 14 51 11 51 6 M31 34 C30 26 26 22 28 12 M28.5 19 C25 16 23 13 22 8" stroke="#55486b" stroke-width="3.2"/></g>
+    <path d="M24 63 Q26 54 31 52 Q37 54 39 63Z" fill="#55486b" ${O}/><path d="M29 50 q-1 5 1 10 M34 47 q1 4 0 8" stroke="#3a2f4c" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M38 13.5 q5 -6 10 -1.5 l4 .6 l-3.4 2 q-1 4 -6 4 q-4 0 -4.6 -5.1Z" fill="${INK}"/><circle cx="46.6" cy="12.6" r="1.1" fill="#ffd84a"/>`,
+  lamp: `<circle cx="32" cy="17" r="17" fill="url(#ga-glow)"/><rect x="30" y="26" width="4" height="37" fill="url(#ga-gy)" ${O2}/><rect x="25" y="60" width="14" height="4" rx="1.5" fill="url(#ga-gy)" ${O2}/>
+    <path d="M24 9 H40 L38 26 H26Z" fill="url(#ga-fire)" ${O}/><path d="M32 9 V26 M25 17.5 H39" stroke="${INK}" stroke-width="1.3"/><path d="M22 9 L32 2 L42 9Z" fill="url(#ga-gy)" ${O}/>${shine(28,14,1.4,3.4,.6,8)}`,
+  weeds: `<path d="M8 62 C10 48 18 46 16 34 M30 62 C28 50 38 44 34 30 M52 62 C54 50 46 46 50 36" fill="none" stroke="${INK}" stroke-width="4.6" stroke-linecap="round"/>
+    <path d="M8 62 C10 48 18 46 16 34 M30 62 C28 50 38 44 34 30 M52 62 C54 50 46 46 50 36" fill="none" stroke="#4d7a52" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M13 48 l-5 -3 M15 41 l5 -2 M31 50 l-6 -2 M35 41 l6 -1 M33 35 l-5 -3 M52 50 l5 -3 M49 43 l-5 -2" stroke="#4d7a52" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M2 63 q4 -12 7 -1 q3 -9 6 0 q4 -8 6 1Z M38 63 q3 -10 6 -1 q3 -7 5 0 q4 -9 7 1Z M20 63 q3 -7 5 0 q3 -6 6 0Z" fill="#3f6646" ${O2}/>`,
+
   torch: `<path d="M18 58 L36 30" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M18 58 L36 30" stroke="url(#ga-wd)" stroke-width="5" stroke-linecap="round"/>
     <path d="M31.5 31 L39.5 36 L42 31.5 L34 26.5Z" fill="url(#ga-gy)" ${O}/>
     <path d="M38 29 C30 24 31 14 37 6 C38 12 42 12 43 8 C48 14 50 24 42 30 Z" fill="url(#ga-fire)" ${O}/>

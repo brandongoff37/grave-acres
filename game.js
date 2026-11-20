@@ -174,29 +174,35 @@ const remaining = p => (seed(p.seed).time-elapsed(p))/rate(p);
 const witherLeft = p => (readyAt(p)+witherWindow(seed(p.seed))*1000-Date.now())/1000;
 const nextLockedIndex = () => S.plots.findIndex(p=>p===null);
 
+// The side fences need to know how deep the yard is, and the fence picture is handed to the CSS as a background
+let yardH=0;function sizeYard(){const h=$('field').offsetHeight;if(h&&h!==yardH){yardH=h;$('yard').style.setProperty('--fh',h+'px')}}
+$('yard').style.setProperty('--fence','url("data:image/svg+xml,'+encodeURIComponent(art('fence').replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))+'")');
+addEventListener('resize',sizeYard);
 function renderField(){
   const f=$('field');
   if(f.children.length!==20){f.innerHTML='';for(let i=0;i<20;i++){const d=document.createElement('button');d.className='plot';d.onclick=()=>tapPlot(i,d);f.appendChild(d)}}
   const nl=nextLockedIndex();
   S.plots.forEach((p,i)=>{
     const d=f.children[i];let key,html,cls='plot',label,grow=null;
+    const hs='<span class="hs">'+art('stone'+(i*5+(i>>2))%4)+'</span>';   // every grave keeps its own headstone
     if(p===null){
-      cls='plot locked';
-      if(i===nl){key='lock';html='<div class="art">'+art('lock')+'</div>'+mi('coin')+' '+PLOT_COST[i];label='Locked plot, costs '+PLOT_COST[i]+' coins';}
-      else{key='lock2';html='';label='Locked plot';}
+      cls='plot locked';const wd='<span class="wd">'+art('weeds')+'</span><span class="wd b">'+art('weeds')+'</span>';
+      if(i===nl){key='lock';html='<div class="art">'+art('lock')+'</div>'+mi('coin')+' '+PLOT_COST[i];label='Overgrown plot, costs '+PLOT_COST[i]+' coins to clear';}
+      else{key='lock2';html=wd;label='Overgrown plot';}
     }else{
       const st=plotState(p);
-      if(st==='empty'){key='empty';html='<span class="plus" aria-hidden="true">+</span>';label='Empty plot, tap to plant';}
+      if(st==='empty'){cls='plot empty';key='empty';html=hs+'<span class="plus" aria-hidden="true">+</span>';label='Open grave, tap to plant';}
       else{
         const s=seed(p.seed);
-        if(st==='withered'){cls='plot wither';key='wilt';html='<div class="art">'+art('wilt')+'</div>';label='Withered '+s.name+', tap to clear';}
+        if(st==='withered'){cls='plot wither';key='wilt';html=hs+'<div class="art">'+art('wilt')+'</div>';label='Withered '+s.name+', tap to clear';}
         else if(st==='ready'){
           const warn=s.type==='crop'&&witherLeft(p)<witherWindow(s)*.25;
-          cls='plot '+(warn?'warn':'ready');key=cls+s.id;html='<div class="art">'+art(s.id)+'</div>';label=s.name+' ready to harvest'+(warn?', about to wither':'');}
+          cls='plot '+(warn?'warn':'ready');key=cls+s.id;html=hs+'<div class="art">'+art(s.id)+'</div>';label=s.name+' ready to harvest'+(warn?', about to wither':'');}
         else{
-          const pr=progress(p);const stage=s.type==='zom'?(pr<.5?'mound':'hand'):(pr<.5?'sprout':'sprout2');
+          const pr=progress(p);const stage=s.type==='zom'?(pr<.5?'dirt':'hand'):(pr<.5?'sprout':'sprout2');
           key='g-'+s.id+'-'+stage+'-'+(p.w?1:0);grow=[pr,clock(remaining(p))];
-          html='<div class="art">'+art(stage)+'</div><span class="wet'+(p.w?'':' dry')+'">'+art('drop')+'</span><span class="tm"></span><div class="bar"><div style="width:'+(pr*100)+'%"></div></div>';
+          if(d.dataset.k==='empty')cls='plot fresh';   // just planted: the headstone thumps down
+          html=hs+'<div class="art">'+art(stage)+'</div><span class="wet'+(p.w?'':' dry')+'">'+art('drop')+'</span><span class="tm"></span><div class="bar"><div style="width:'+(pr*100)+'%"></div></div>';
           label=s.name+' growing, '+fmt(remaining(p))+' left'+(p.w?'':', tap to water');
         }
       }
@@ -210,14 +216,15 @@ function renderField(){
   const hb=$('harvestAll');hb.disabled=!readyN&&!wiltN;
   hb.textContent=readyN?'Harvest all ('+readyN+')':wiltN?'Clear withered ('+wiltN+')':'Harvest all';
   const nb=$('nbFarm');nb.hidden=!readyN;nb.textContent=readyN;
+  sizeYard();
 }
 
 function tapPlot(i,el){
   const p=S.plots[i];
   if(p===null){
-    if(i!==nextLockedIndex())return toast('Unlock plots in order');
+    if(i!==nextLockedIndex())return toast('Clear the plot with the lock first');
     const c=PLOT_COST[i];
-    if(S.coins<c)return toast('You need '+c+' coins to clear this plot');
+    if(S.coins<c)return toast('You need '+c+' coins to clear this plot ('+(c-S.coins)+' more)');
     S.coins-=c;S.plots[i]={};floatAt(el,'-'+c+mi('coin'));sfx.plant();buzz(15);save();return refresh();
   }
   const st=plotState(p);
@@ -261,7 +268,7 @@ function seedPicker(i){
         (lock?'Unlocks at level '+s.lvl:fmt(s.time)+(s.type==='crop'?' · sells for '+s.sell+' · profit +'+(s.sell-s.cost)+'<br>Withers '+fmt(witherWindow(s))+' after ripening':' · attack '+s.atk+' · health '+s.hp+'<br><span class="ab">'+s.abName+'</span> '+s.abTxt))+
         (!lock&&empties>1&&S.coins>=s.cost*2?'<br><button class="mini" onclick="plantAll(\''+s.id+'\')">Plant '+Math.min(empties,Math.floor(S.coins/s.cost))+' at once · '+Math.min(empties,Math.floor(S.coins/s.cost))*s.cost+' coins</button>':'')+
         '</div><button '+(lock||!afford?'disabled':'')+' onclick="plant('+i+',\''+s.id+'\')">'+mi('coin')+' '+s.cost+'</button></div>'}).join('')).join('');
-  openSheet('<h3>'+mi('sprout')+'Plant something</h3>'+rows);
+  openSheet('<h3>'+mi('sprout')+'Plant in this grave</h3>'+rows);
 }
 function plant(i,id){
   const s=seed(id);if(S.coins<s.cost)return;
@@ -295,7 +302,7 @@ const zPower = z => {const s=zStats(z);return unitPower(s.atk,s.hp,s.ab)};
 const power = list => list.reduce((a,z)=>a+zPower(z),0);
 const strongest = n => [...S.horde].sort((a,b)=>zPower(b)-zPower(a)).slice(0,n);
 function renderHorde(){
-  $('hordeInfo').innerHTML='Horde: <b style="color:var(--ink)">'+S.horde.length+' / '+hordeCap()+'</b> · Raid squad: up to <b style="color:var(--ink)">'+squadCap()+'</b><br>Tap a zombie to release it for coins. Glowing ones are mutants.';
+  $('hordeInfo').innerHTML='Horde: <b style="color:var(--ink)">'+S.horde.length+' / '+hordeCap()+'</b> · Raid squad: up to <b style="color:var(--ink)">'+squadCap()+'</b><br>Tap a zombie to see what it does, or to release it for coins. Glowing ones are mutants.';
   const sorted=[...S.horde].sort((a,b)=>zPower(b)-zPower(a));
   $('hordeList').innerHTML=sorted.length?sorted.map(z=>{const st=zStats(z);
     return '<div class="zcard'+(z.mut?' mut':'')+'" onclick="releaseZ('+z.id+')">'+(z.mut?'<span class="badge">'+art('sparkle')+'</span>':'')+'<div class="e">'+art(z.s)+'</div>'+st.name+'<br><small style="color:var(--muted)">atk '+st.atk+' · hp '+st.hp+'</small>'+(st.ab?'<br><span class="ab">'+st.abName+'</span>':'')+'</div>'}).join('')
@@ -305,7 +312,11 @@ function renderHorde(){
 }
 function releaseZ(id){
   const z=S.horde.find(z=>z.id===id);if(!z)return;const st=zStats(z);const val=seed(z.s).sell*(z.mut?2:1);
-  openSheet('<h3>'+mi(z.s)+st.name+(z.mut?' (mutant)':'')+'</h3><p>Release this zombie back into the soil for '+val+' coins?</p>'+
+  const sd=seed(z.s);
+  openSheet('<h3>'+mi(z.s)+st.name+(z.mut?' (mutant)':'')+'</h3>'+
+    '<div class="stats"><div><b>'+st.atk+'</b>attack</div><div><b>'+st.hp+'</b>health</div></div>'+
+    '<p style="margin:6px 0"><span class="ab">'+sd.abName+'</span> '+sd.abTxt+(z.mut?'<br>'+mi('sparkle')+' Mutant: +50% attack and health.':'')+'</p>'+
+    '<p style="margin:6px 0">You can release this zombie back into the soil for '+val+' coins.</p>'+
     '<div class="toolbar"><button onclick="closeSheet()">Keep</button><button class="gold" onclick="doRelease('+id+','+val+')">Release</button></div>');
 }
 function doRelease(id,val){S.horde=S.horde.filter(z=>z.id!==id);S.coins+=val;closeSheet();sfx.coin();save();refresh()}
@@ -410,13 +421,15 @@ function toggleSquad(ti,id){
 function unitHTML(u,i,side){return '<div class="u'+(side==='f'?' foe':'')+(u.mut?' mut':'')+'" id="'+side+i+'"><div class="b"><div class="hp"><div></div></div><div class="a">'+art(u.k)+'</div></div><div class="fx"></div></div>'}
 const stepTime = () => S.fast?250:520;
 let battleSkip=null;
-function playBattle(title,mine,foes,result,onDone){
+function playBattle(title,mine,foes,result,onDone,atHome){
   fighting=true;
   $('raidPick').style.display='none';$('battle').style.display='';$('battleDone').style.display='none';$('skipBtn').style.display='';$('speedBtn').style.display='';
   $('speedBtn').textContent='Speed ×'+(S.fast?2:1);
   $('vsTxt').textContent=title;$('log').innerHTML='';$('result').className='';$('result').innerHTML='';$('mine').innerHTML='';$('foes').innerHTML='';
   const anim=motionOK(),LEAN=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lean'))||50;
-  $('skyline').innerHTML=[0,1,2,3,4].map(()=>'<span>'+art('house')+'</span>').join('');
+  // Raids are fought at the edge of town; torch mobs are fought at your own graveyard gate
+  $('skyline').className='skyline'+(atHome?' yard':'');
+  $('skyline').innerHTML=(atHome?['stone1','stone0','gate','stone2','stone3']:['house','house','house','house','house']).map(k=>'<span>'+art(k)+'</span>').join('');
   const els={m:[],f:[]},shown={m:[],f:[]},list=side=>side==='m'?mine:foes;
   const add=(u,i,side,drop)=>{
     const box=$(side==='m'?'mine':'foes');box.insertAdjacentHTML('beforeend',unitHTML(u,i,side));
@@ -444,6 +457,8 @@ function playBattle(title,mine,foes,result,onDone){
     el.querySelector('.hp>div').style.width=Math.max(0,100*v/u.max)+'%';
     if(v<=0)el.classList.add('dead');
     if(quiet||v===was)return;
+    if(v<was&&anim){const r=document.createElement('span');r.className='ring'+(crit?' crit':'');el.appendChild(r);setTimeout(()=>r.remove(),480);   // a shockwave spreads across the ground
+      if(v<=0)el.animate([{transform:'translate3d(0,0,0)'},{transform:'translate3d(0,'+(side==='m'?10:-10)+'px,38px)',offset:.35},{transform:'translate3d(0,0,0)'}],{duration:420,easing:'ease-in'})}
     if(v<was){pop(el,String(v-was),crit?'crit':'');if(v>0)recoil(el,side)}else pop(el,'+'+(v-was),'heal');
   }));
   const lines=[];let k=0,timer=0,over=false;
@@ -496,7 +511,7 @@ function raid(ti){
 }
 $('skipBtn').onclick=()=>{battleSkip&&battleSkip()};
 $('speedBtn').onclick=e=>{S.fast=!S.fast;save();e.currentTarget.textContent='Speed ×'+(S.fast?2:1)};
-$('battleDone').onclick=()=>refresh();
+$('battleDone').onclick=e=>{e.currentTarget.textContent='Back to the towns';if(afterBattle){view=afterBattle;afterBattle=null;setView()}refresh()};
 
 // ================= Torch mobs (towns fight back) =================
 const mobUnlocked = () => Object.keys(S.beaten).length>0;
@@ -523,27 +538,40 @@ function mobTick(){
   if(soon)$('mobTxt').innerHTML='<b style="color:#fff">A torch mob is coming in '+clock(left)+'!</b><br>Your strongest '+squadCap()+' zombies will defend. Defenders: power '+Math.round(power(strongest(squadCap())))+'.';
   if(left<=0&&!fighting&&!$('sheet').classList.contains('show'))resolveMob(left<-10);
 }
+// When a mob arrives while you're playing, you watch your defenders fight it at the gate.
+// If it came while the game was closed, you just get the report.
+let afterBattle=null;
 function resolveMob(away){
   const force=mobForce();
   const def=strongest(squadCap());
   const mine=def.map(makeZ),foes=force.map((f,i)=>makeFoe(f,i,f[3]));
   const res=def.length?simulate(mine,foes):{win:false,steps:[]};
-  const {lost,crawled}=settleLosses(mine);
-  let html='<h3>'+mi('torch')+(away?'A mob came while you were away':'The torch mob is here!')+'</h3><div class="sumrow">'+foes.map(f=>'<div class="s">'+art(f.k)+'</div>').join('')+'</div>';
-  if(res.win){
-    const b=1+Math.floor(S.level/3),c=10*S.level;S.bones+=b;S.coins+=c;S.stats.mobWins++;gainXP(5*S.level);
-    html+='<p><b style="color:var(--green)">Your horde drove them off!</b> You scavenged '+c+' coins and '+b+' bones.</p>';sfx.win();
-  }else{
-    const victims=shuffle(S.plots.map((p,i)=>p&&p.seed?i:-1).filter(i=>i>=0)).slice(0,2);
-    victims.forEach(i=>S.plots[i]={});
-    const stolen=Math.round(S.coins*.15);S.coins-=stolen;S.stats.mobLosses++;
-    html+='<p><b style="color:var(--red)">'+(def.length?'The mob broke through!':'No zombies were home to defend!')+'</b> They trampled '+victims.length+' plot'+(victims.length===1?'':'s')+' and made off with '+stolen+' coins.</p>';sfx.lose();
+  const settle=()=>{
+    const {lost,crawled}=settleLosses(mine);const o={win:res.win,lost,crawled,any:def.length>0};
+    if(res.win){o.bones=1+Math.floor(S.level/3);o.coins=10*S.level;S.bones+=o.bones;S.coins+=o.coins;S.stats.mobWins++;gainXP(5*S.level);sfx.win()}
+    else{
+      const victims=shuffle(S.plots.map((p,i)=>p&&p.seed?i:-1).filter(i=>i>=0)).slice(0,2);
+      victims.forEach(i=>S.plots[i]={});o.trampled=victims.length;
+      o.stolen=Math.round(S.coins*.15);S.coins-=o.stolen;S.stats.mobLosses++;sfx.lose();
+    }
+    scheduleMob();save();buzz([60,40,60]);return o;
+  };
+  const story=o=>(o.win?'<p><b style="color:var(--green)">Your horde drove the mob off!</b> You scavenged '+o.coins+' coins and '+o.bones+' bones.</p>'
+      :'<p><b style="color:var(--red)">'+(o.any?'The mob broke through!':'No zombies were home to stop the mob!')+'</b> They trampled '+o.trampled+' grave'+(o.trampled===1?'':'s')+' and made off with '+o.stolen+' coins.</p>')+
+    (o.lost?'<p>'+o.lost+' defender'+(o.lost>1?'s':'')+' fell for good'+(o.crawled?', and '+o.crawled+' crawled back':'')+'.</p>':o.crawled?'<p>'+o.crawled+' fallen defender'+(o.crawled>1?'s':'')+' crawled back home.</p>':'');
+  if(away||!def.length){
+    const o=settle();refresh();
+    return openSheet('<h3>'+mi('torch')+(away?'A mob came while you were away':'The torch mob is here!')+'</h3><div class="sumrow">'+foes.map(f=>'<div class="s">'+art(f.k)+'</div>').join('')+'</div>'+story(o)+
+      '<p style="font-size:12px">Tip: keep a strong horde at home, and use mutants and tough zombies to hold the line.</p><button class="gold" style="width:100%" onclick="closeSheet()">OK</button>',true);
   }
-  if(lost)html+='<p>'+lost+' defender'+(lost>1?'s':'')+' fell for good'+(crawled?', and '+crawled+' crawled back':'')+'.</p>';
-  else if(crawled)html+='<p>'+crawled+' fallen defender'+(crawled>1?'s':'')+' crawled back home.</p>';
-  html+='<p style="font-size:12px">Tip: keep a strong horde at home, and use mutants and tough zombies to hold the line.</p><button class="gold" style="width:100%" onclick="closeSheet()">OK</button>';
-  scheduleMob();save();refresh();buzz([60,40,60]);
-  openSheet(html,true);
+  afterBattle=view;view='raid';setView();toast('A torch mob is at the gate!');
+  playBattle('Torch mob at the gate!',mine,foes,res,(log,banner)=>{
+    const o=settle();
+    log(o.win?'<b style="color:var(--green)">The mob ran for it! +'+o.coins+' coins, +'+o.bones+' bones</b>':'<b style="color:var(--red)">The mob broke through…</b>');
+    banner((o.win?'<h2>Mob driven off!</h2><div class="loot"><span class="chip">'+mi('coin')+'+'+o.coins+'</span><span class="chip">'+mi('bone')+'+'+o.bones+'</span></div>':'<h2>The mob broke through</h2>')+story(o).replace(/^<p>.*?<\/b>/,'<p>'),o.win);
+    if(o.win)coinsFrom($('result'),3);
+    hud();$('battleDone').textContent='Back to the graveyard';
+  },true);
 }
 
 // ================= Menu, backup =================

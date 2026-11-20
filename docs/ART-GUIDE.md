@@ -24,6 +24,9 @@ for game art, so the game stays tiny, sharp at any size, and works offline.
 | Materials | gold `ga-gd`, metal `ga-mt` / `ga-mtv`, wood `ga-wd`, stone `ga-ts`, cloth `ga-bl` `ga-rd` `ga-gr` `ga-br` `ga-pk`, cape `ga-cp` |
 | Glows | `ga-glow` (ghostly), `ga-eyeY` (yellow eyes), `ga-eyeG` (green eyes), `ga-fire` (flame), `ga-orb` (magic) |
 
+## Graveyard pieces
+`stone0`–`stone3` are the headstones (drawn standing on the bottom edge of the canvas so they sit on the dirt), `dirt` is a zombie seed stirring, `weeds` covers locked plots, and `fence`, `gate`, `tree` and `lamp` are the scenery. `fence` is used as a repeating background, so it uses flat colors (no shared gradients) and its rails run edge to edge.
+
 ## Adding or editing a drawing
 1. Open `art.js` and find the `ART` object. Each entry is `key: \`...svg shapes...\``.
 2. Add or edit shapes. Reuse helpers: `shadow()`, `shine()`, `eye()`, `dot()`, `blush()`, `bust()` (shoulders), `neck()`, `frond()` (feathery leaves).

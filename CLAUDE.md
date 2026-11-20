@@ -34,15 +34,17 @@ It installs to the home screen on iPhone (Safari → Share → Add to Home Scree
 1. **Bump versions on every release that changes `art.js` or `game.js`**, or phones keep the old copy:
    - in `index.html`: `art.js?v=N` and `game.js?v=N`
    - in `sw.js`: `CACHE = 'grave-acres-vN'` and the same `?v=N` entries in `FILES`
-   (Current: **v9**.)
+   `npm run bump` does all of this in one step.
+   (Current: **v10**.)
 2. **Never break old saves.** Saves live in `localStorage` under `graveacres.v1`. New fields go in
    `fresh()` and are filled in by `migrate()` in `game.js`. Keep seed/zombie `id`s stable
    (`radish`, `corn`, `pump`, `egg`, `mush`, `shamb`, `sprint`, `brute`, `mummy`, `vamp`).
-3. **Run the checks before pushing:** `npm test` (all PASS, no page errors) and, after any
-   balance change, `npm run balance` (targets in `docs/DESIGN.md`).
+3. **Run the checks before pushing:** `npm run check` (syntax, playtest and balance report in one go;
+   all PASS, no page errors, win rates near the targets in `docs/DESIGN.md`).
 4. **Art must be original** and follow `docs/ART-GUIDE.md`. Crops are spooky but PG.
 5. Keep it a single static site: no build step, no server, no paid services.
    The 3D look is plain CSS (`rotateX`, `perspective`, `preserve-3d`), so don't add a 3D library.
+   The farm is drawn as a graveyard (see "The graveyard" in `docs/DESIGN.md`). `#field` must hold exactly the 20 plot buttons and nothing else.
    An element with `overflow:hidden`, `opacity` below 1 or a `filter` flattens the 3D inside it, so put those on the innermost picture, not on a plot or fighter wrapper.
 6. Commit with clear messages and push to `main`. The live site updates in about a minute.
    Then confirm the new `?v=` files load at the live URL.
@@ -56,6 +58,8 @@ Requires Node.js. One-time setup: `npm install` then `npx playwright install chr
 | `npm test` | Plays through the game on a phone-sized screen; prints PASS/FAIL; screenshots go to `previews/` |
 | `npm run balance` | Simulates hundreds of battles per town and mob; prints win rates |
 | `npm run art` | Renders every drawing onto `previews/art-sheet.html` / `.png` |
+| `npm run bump` | Raises the version number in every file that needs it (`index.html`, `sw.js`, `package.json`, this file) |
+| `npm run check` | Runs every check before a push: syntax, playtest, balance report |
 | `npm run icons` | Rebuilds app icons from the art (needs `rsvg-convert`, or export `previews/icon.svg` in Inkscape) |
 
 Set `CHROME_PATH` to use an installed Chrome instead of Playwright's browser.

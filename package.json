@@ -1,6 +1,6 @@
 {
   "name": "grave-acres",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "private": true,
   "description": "Grave Acres — grow spooky crops, raise a zombie horde, raid the towns next door. Installable web app (PWA).",
   "scripts": {
@@ -8,7 +8,9 @@
     "test": "node tools/playtest.js",
     "balance": "node tools/balance.js",
     "art": "node tools/art-sheet.js",
-    "icons": "node tools/make-icons.js"
+    "icons": "node tools/make-icons.js",
+    "bump": "node tools/bump.js",
+    "check": "node tools/check.js"
   },
   "devDependencies": {
     "playwright": "^1.48.0"
