@@ -190,11 +190,14 @@ const ART = {
     <path d="M22 63 C25 61 27 58 28 52 Q31 46 34 52 C35 58 38 61 43 63Z" fill="#5b4d70" ${O}/><path d="M18 63 q4 -1 7 -3 M46 63 q-4 -1 -6 -3" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
     <path d="M30 50 q-1 5 1 10 M34 48 q1 4 0 8" stroke="#3a2f4c" stroke-width="1.2" fill="none" stroke-linecap="round"/><ellipse cx="31.5" cy="44" rx="1.6" ry="2.4" fill="#231c30"/>
     <path d="M40 12.5 q4 -5 8.5 -1.4 l3.6 .6 l-3 1.8 q-1 3.6 -5.4 3.6 q-3.6 0 -3.7 -4.6Z" fill="${INK}"/><circle cx="47.2" cy="11.8" r="1" fill="#ffd84a"/>`,
-  // lamp: a tall iron lantern post. The drawing is narrow, so give it a tall square box in CSS.
-  lamp: `<ellipse cx="32" cy="15" rx="15" ry="15" fill="url(#ga-glow)"/><rect x="30.6" y="27" width="2.8" height="33" fill="url(#ga-ir)" ${O2}/>
-    <path d="M26 64 h12 l-2 -5 h-8Z" fill="url(#ga-ir)" ${O2}/><rect x="28.8" y="40" width="6.4" height="2" rx="1" fill="url(#ga-ir)" ${O2}/>
-    <path d="M26.5 10 H37.5 L36.2 25 H27.8Z" fill="url(#ga-fire)" ${O}/><path d="M32 10 V25 M27 17.5 H37" stroke="${INK}" stroke-width="1.1"/>
-    <path d="M25 10 L32 4 L39 10Z" fill="url(#ga-ir)" ${O}/><path d="M32 4 V1.5" stroke="${INK}" stroke-width="1.4" stroke-linecap="round"/><rect x="26.5" y="25" width="11" height="2.4" rx="1" fill="url(#ga-ir)" ${O2}/>${shine(29.5,14,1,3,.6,8)}`,
+  // pillar: a squat stone gate pillar (matching the gate's stone) with a small iron lantern on its cap.
+  // The lantern's light is in the "lit" group so CSS can make it flicker without dimming the stone.
+  pillar: `<g class="lit"><ellipse cx="32" cy="14" rx="13" ry="12" fill="url(#ga-glow)"/></g>
+    <rect x="20" y="57" width="24" height="7" rx="1" fill="url(#ga-ts)" ${O}/><rect x="23" y="28" width="18" height="30" fill="url(#ga-ts)" ${O}/>
+    <path d="M24 38 h16 M24 48 h16 M32 29 v9 M28 38 v10 M36 48 v9 M27 29 v9" stroke="#55507a" stroke-width="1.2" stroke-linecap="round"/>${shine(26,34,1,3.4,.4,0)}
+    <rect x="20" y="24" width="24" height="5" rx="1.5" fill="url(#ga-ts)" ${O}/><path d="M22 60 h20" stroke="#55507a" stroke-width="1" stroke-linecap="round"/>
+    <rect x="27" y="21" width="10" height="3" rx="1" fill="url(#ga-ir)" ${O2}/><path d="M28 12 H36 L35.2 21 H28.8Z" fill="url(#ga-fire)" ${O2}/><path d="M32 12 V21 M28.4 16.5 H35.6" stroke="${INK}" stroke-width=".9"/>
+    <path d="M26.5 12.2 L32 6.6 L37.5 12.2Z" fill="url(#ga-ir)" ${O2}/><path d="M32 6.6 V4" stroke="${INK}" stroke-width="1.3" stroke-linecap="round"/><circle cx="32" cy="3.4" r="1" fill="${INK}"/>${shine(30,15,.7,2.2,.6,8)}`,
   weeds: `<path d="M8 62 C10 48 18 46 16 34 M30 62 C28 50 38 44 34 30 M52 62 C54 50 46 46 50 36" fill="none" stroke="${INK}" stroke-width="4.6" stroke-linecap="round"/>
     <path d="M8 62 C10 48 18 46 16 34 M30 62 C28 50 38 44 34 30 M52 62 C54 50 46 46 50 36" fill="none" stroke="#4d7a52" stroke-width="2.4" stroke-linecap="round"/>
     <path d="M13 48 l-5 -3 M15 41 l5 -2 M31 50 l-6 -2 M35 41 l6 -1 M33 35 l-5 -3 M52 50 l5 -3 M49 43 l-5 -2" stroke="#4d7a52" stroke-width="1.8" stroke-linecap="round"/>

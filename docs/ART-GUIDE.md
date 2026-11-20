@@ -25,7 +25,7 @@ for game art, so the game stays tiny, sharp at any size, and works offline.
 | Glows | `ga-glow` (ghostly), `ga-eyeY` (yellow eyes), `ga-eyeG` (green eyes), `ga-fire` (flame), `ga-orb` (magic) |
 
 ## Graveyard pieces
-Headstones are drawn standing on the bottom edge of the canvas so they sit on the dirt: `stone0` and `stone2` are carved stone, `wood0` and `wood2` are the same shapes in weathered planks (`ga-ow`), and `garg0` and `garg1` are gargoyles on plinths. No crosses. Which grave gets which is the `HEADSTONES` list in `game.js`; wooden ones rock in the wind. `dirt` is a zombie seed stirring, `weeds` covers locked plots, and `fence`, `gate`, `tree` and `lamp` are the scenery. `fence` is used as a repeating background, so it uses flat colors (no shared gradients) and its rails run edge to edge. `lamp` is narrow, so give it a tall square box in CSS.
+Headstones are drawn standing on the bottom edge of the canvas so they sit on the dirt: `stone0` and `stone2` are carved stone, `wood0` and `wood2` are the same shapes in weathered planks (`ga-ow`), and `garg0` and `garg1` are gargoyles on plinths. No crosses. Which grave gets which is the `HEADSTONES` list in `game.js`; wooden ones rock in the wind. `dirt` is a zombie seed stirring, `weeds` covers locked plots, and `fence`, `gate`, `tree` and `pillar` are the scenery. `fence` is used as a repeating background, so it uses flat colors (no shared gradients) and its rails run edge to edge. `pillar` is a stone pillar in the gate's stone (`ga-ts`) with a small lantern on top; its light sits in a `<g class="lit">` group so CSS flickers only the light, not the stone.
 
 ## Adding or editing a drawing
 1. Open `art.js` and find the `ART` object. Each entry is `key: \`...svg shapes...\``.

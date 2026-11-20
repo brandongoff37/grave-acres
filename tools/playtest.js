@@ -74,9 +74,12 @@ const { launch, GAME, OUT } = require('./browser');
     lp.on('pageerror', e => errs.push(e.message));
     await lp.goto(GAME); await lp.evaluate(() => { S.seen = 1; S.lastDay = today(); save(); }); await lp.reload(); await lp.waitForTimeout(400);
     await lp.click('#playBtn'); await lp.waitForTimeout(800);
-    const fit = await lp.evaluate(() => { const ps = [...document.querySelectorAll('#field .plot')].map(e => e.getBoundingClientRect()), hb = document.getElementById('harvestAll').getBoundingClientRect();
-      return { bottom: Math.max(...ps.map(r => r.bottom)), minW: Math.min(...ps.map(r => r.width)), hb: hb.bottom, cols: getComputedStyle(document.getElementById('field')).gridTemplateColumns.split(' ').length, over: document.documentElement.scrollWidth - innerWidth }; });
+    const fit = await lp.evaluate((h) => { const ps = [...document.querySelectorAll('#field .plot')].map(e => e.getBoundingClientRect()), hb = document.getElementById('harvestAll').getBoundingClientRect();
+      const yd = [...document.querySelectorAll('#yard, #yard *')].map(e => e.getBoundingClientRect()), nav = document.querySelector('nav').getBoundingClientRect(), side = document.getElementById('goal').getBoundingClientRect();
+      return { bottom: Math.max(...ps.map(r => r.bottom)), minW: Math.min(...ps.map(r => r.width)), hb: hb.bottom, cols: getComputedStyle(document.getElementById('field')).gridTemplateColumns.split(' ').length, over: document.documentElement.scrollWidth - innerWidth,
+        pillars: document.querySelectorAll('.gy-pillar svg').length, yl: Math.round(Math.min(...yd.map(r => r.left)) - nav.right), yr: Math.round(side.left - Math.max(...yd.map(r => r.right))), yb: Math.round(h - Math.max(...yd.map(r => r.bottom))), fill: Math.round(100 * (Math.max(...yd.map(r => r.right)) - Math.min(...yd.map(r => r.left))) / (side.left - nav.right)) }; }, h);
     ok(fit.cols === 5 && fit.bottom <= h && fit.hb <= h && fit.over === 0 && fit.minW >= 50, 'landscape ' + w + 'x' + h + ': graveyard fits, 5 graves across (' + JSON.stringify(fit) + ')');
+    ok(fit.pillars === 2 && fit.yl >= 0 && fit.yr >= 0 && fit.yb >= 0 && fit.fill >= 85, 'landscape ' + w + 'x' + h + ': graveyard and its stone pillars fill the space without touching the buttons');
     if (w === 844) await lp.screenshot({ path: OUT + '/10-landscape.png' });
     await lp.close();
   }

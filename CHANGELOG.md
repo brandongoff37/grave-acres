@@ -3,6 +3,11 @@
 
 
 
+## v17 — stone pillars and a bigger graveyard (2026-11-20)
+- The iron lamp posts at the front corners are now **stone pillars** (the same stone as the gate) with a **small lantern on top** of each. Only the lantern light flickers.
+- **Landscape:** the graveyard now fills as much of the screen as it can between the tab buttons and the right-hand column, without touching either. It sits higher, and the graves are wider on long phones and a bit squarer on shorter ones, so the yard grows into the empty space.
+- The playtest now checks that the yard and pillars fill most of the space and stay clear of the buttons and the bottom of the screen.
+
 ## v16 — sound comes back on its own (2026-11-20)
 - **Fixed: no sound even with both volumes up.** Phones can pause a game's sound by themselves (turning the screen, a call, switching apps), and iPhones call that "interrupted" rather than "suspended", which the game didn't check for. Any tap now wakes the sound back up, and so does turning the phone.
 - On iPhones the game now tells the phone it plays media, so the sound isn't muted by the ring/silent switch (Safari 16.4 and later).

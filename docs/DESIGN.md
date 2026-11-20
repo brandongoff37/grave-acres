@@ -69,7 +69,7 @@ Each town must be overrun before the next unlocks. After each win the town rebui
 - Everything animated respects the phone's "reduce motion" setting.
 
 ### The graveyard (farm screen)
-- `#yard` is the leaning ground. Inside it: `.gy-back` (fence, gate, tree standing along the back), two `.gy-side` fences that stand straight up along the edges, `#field` (the 20 plots), two `.gy-lamp` lanterns, `.fog` and two `.wisp` lights.
+- `#yard` is the leaning ground. Inside it: `.gy-back` (fence, gate, tree standing along the back), two `.gy-side` fences that stand straight up along the edges, `#field` (the 20 plots), two `.gy-pillar` stone pillars with lanterns on top at the front corners, `.fog` and two `.wisp` lights.
 - Each open plot is a grave: `.plot` (the dirt bed) with a `.hs` headstone standing at its head. The headstone design is picked from the plot's position, so it never changes.
 - Locked plots are flat and shorter than open ones so new players don't have to scroll.
 - `#fieldWrap` slowly moves its `perspective-origin` left and right (the "look" animation), which is what makes near and far things shift.

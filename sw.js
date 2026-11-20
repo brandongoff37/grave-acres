@@ -1,7 +1,7 @@
 // Offline support. The page itself is fetched fresh when online (so updates show up
 // right away) and falls back to the cache when offline. Other files are cache-first.
-const CACHE = 'grave-acres-v16';
-const FILES = ['./', './index.html', './art.js?v=16', './game.js?v=16', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE = 'grave-acres-v17';
+const FILES = ['./', './index.html', './art.js?v=17', './game.js?v=17', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, {cache: 'reload'})))).then(() => self.skipWaiting()));
