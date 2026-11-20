@@ -1,5 +1,12 @@
 # Changelog
 
+## v13 — the graveyard, seen from the side (2026-11-20)
+- The camera now stands off to one side and lower down, so the yard reads as a real 3D patch of ground. The whole graveyard no longer sways.
+- Wind instead: the dead oak bends in gusts, and wooden grave markers rock gently, each on its own beat. Stone stays still.
+- Redrew the border to scale: slimmer wrought-iron fence on a stone footing, a taller stone-pillared gate with iron doors and a lantern, a bigger gnarled oak standing just outside the back corner, and tall iron lantern posts at the front corners.
+- Crosses are gone from the graveyard, the title screen and the home battle backdrop. New headstones: weathered-wood versions of the two carved stones (`wood0`, `wood2`) and two gargoyles on plinths (`garg0`, `garg1`, three graves have one).
+- Headstones are now slabs with a visible edge when seen from the side.
+
 ## v12 — Cleaner sound
 - **Fixed static and distortion in the audio.** Three causes, all fixed:
   - The organ's lowest notes were deeper than a phone speaker can play, which makes small speakers buzz. The bass now sits an octave higher, and a filter removes anything too deep (rumble below 80 Hz went from 38% of the sound to 2%).

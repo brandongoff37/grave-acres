@@ -27,7 +27,7 @@ const { launch, GAME, OUT } = require('./browser');
   ok(await p.evaluate(() => plotState(S.plots[0]) === 'withered'), 'crops wither');
   ok(await p.evaluate(() => document.querySelector('#field .plot:nth-child(2)').classList.contains('warn')), 'wither warning flash');
   await shot('02-farm');
-  ok(await p.evaluate(() => document.querySelectorAll('#field .plot').length === 20 && document.querySelectorAll('#field .plot .hs svg').length === 8), 'graveyard: 20 plots, a headstone on every open grave');
+  ok(await p.evaluate(() => document.querySelectorAll('#field .plot').length === 20 && document.querySelectorAll('#field .plot .hs > svg').length === 8), 'graveyard: 20 plots, a headstone on every open grave');
   ok(await p.evaluate(() => { const a = document.querySelector('#field .plot').getBoundingClientRect(), b = document.querySelector('#harvestAll').getBoundingClientRect(); return a.width > 60 && b.bottom < innerHeight; }), 'farm fits on a phone screen without scrolling');
   await p.evaluate(() => { S.level = 5; S.coins = 3000; S.bones = 10; S.beaten = { 0: 1, 1: 1, 2: 1 }; S.horde = [];
     ['brute','brute','sprint','sprint','shamb','shamb','mummy'].forEach((s, i) => S.horde.push({ id: S.zid++, s, mut: i == 0 })); S.nextMob = Date.now() + 1e5; save(); refresh(); });

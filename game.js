@@ -252,13 +252,19 @@ const nextLockedIndex = () => S.plots.findIndex(p=>p===null);
 let yardH=0;function sizeYard(){const h=$('field').offsetHeight;if(h&&h!==yardH){yardH=h;$('yard').style.setProperty('--fh',h+'px')}}
 document.documentElement.style.setProperty('--fence','url("data:image/svg+xml,'+encodeURIComponent(art('fence').replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))+'")');
 addEventListener('resize',sizeYard);
+// Which headstone each grave keeps: carved stone, weathered wood, and three gargoyles. No crosses.
+const HEADSTONES=['stone0','wood2','stone2','garg0','wood0','stone0','wood2','stone2','stone2','wood0','garg1','stone0','wood0','stone2','stone0','wood2','stone0','garg0','wood2','stone2'];
+function headstone(i){
+  const k=HEADSTONES[i%HEADSTONES.length],a=art(k),wood=k.startsWith('wood');
+  return '<span class="hs'+(wood?' wood':'')+'"'+(wood?' style="--d:-'+((i*1.7)%6.5).toFixed(1)+'s"':'')+'><i>'+a+'</i><i>'+a+'</i>'+a+'</span>';
+}
 function renderField(){
   const f=$('field');
   if(f.children.length!==20){f.innerHTML='';for(let i=0;i<20;i++){const d=document.createElement('button');d.className='plot';d.onclick=()=>tapPlot(i,d);f.appendChild(d)}}
   const nl=nextLockedIndex();
   S.plots.forEach((p,i)=>{
     const d=f.children[i];let key,html,cls='plot',label,grow=null;
-    const hs='<span class="hs">'+art('stone'+(i*5+(i>>2))%4)+'</span>';   // every grave keeps its own headstone
+    const hs=headstone(i);   // every grave keeps its own headstone
     if(p===null){
       cls='plot locked';const wd='<span class="wd">'+art('weeds')+'</span><span class="wd b">'+art('weeds')+'</span>';
       if(i===nl){key='lock';html='<div class="art">'+art('lock')+'</div>'+mi('coin')+' '+PLOT_COST[i];label='Overgrown plot, costs '+PLOT_COST[i]+' coins to clear';}
@@ -503,7 +509,7 @@ function playBattle(title,mine,foes,result,onDone,atHome){
   const anim=motionOK(),LEAN=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lean'))||50;
   // Raids are fought at the edge of town; torch mobs are fought at your own graveyard gate
   $('skyline').className='skyline'+(atHome?' yard':'');
-  $('skyline').innerHTML=(atHome?['stone1','stone0','gate','stone2','stone3']:['house','house','house','house','house']).map(k=>'<span>'+art(k)+'</span>').join('');
+  $('skyline').innerHTML=(atHome?['garg0','stone0','gate','stone2','wood0']:['house','house','house','house','house']).map(k=>'<span>'+art(k)+'</span>').join('');
   const els={m:[],f:[]},shown={m:[],f:[]},list=side=>side==='m'?mine:foes;
   const add=(u,i,side,drop)=>{
     const box=$(side==='m'?'mine':'foes');box.insertAdjacentHTML('beforeend',unitHTML(u,i,side));

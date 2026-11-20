@@ -16,7 +16,7 @@
 <style>
 /* --tilt is how far the farm leans back; --lean is the same for the battlefield. Pictures that
    stand on either one are turned back by the same angle so they face the player. */
-:root{--bg:#1d1a2b;--panel:#2a2540;--ink:#f2ecd9;--muted:#a69fc0;--green:#7bd36b;--gold:#ffcf4a;--red:#ff6b6b;--dirt:#6b4a2e;--dirt2:#5a3d25;--grass:#3f6b35;--tilt:26deg;--lean:50deg}
+:root{--bg:#1d1a2b;--panel:#2a2540;--ink:#f2ecd9;--muted:#a69fc0;--green:#7bd36b;--gold:#ffcf4a;--red:#ff6b6b;--dirt:#6b4a2e;--dirt2:#5a3d25;--grass:#3f6b35;--tilt:38deg;--turn:-13deg;--lean:50deg}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none;touch-action:manipulation;overflow-x:hidden}
 #app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 8px)}
@@ -51,9 +51,10 @@ button:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 #0000}
 /* ---------- The farm is a graveyard: a patch of ground that leans back, with graves dug into it.
    #yard is the ground. Everything standing on it (headstones, crops, fence, tree, lanterns) is turned
    back by the same angle so it faces the player. ---------- */
-#fieldWrap{perspective:900px;perspective-origin:50% 0;margin-top:26px;animation:look 16s ease-in-out infinite}
-@keyframes look{0%,100%{perspective-origin:38% 0}50%{perspective-origin:62% 0}}
-#yard{position:relative;transform:rotateX(var(--tilt));transform-origin:50% 100%;transform-style:preserve-3d;border-radius:14px;
+/* The camera stands off to one side, low, and holds still: --turn swings the yard so its right side
+   comes toward you, --tilt lays it back. Only the wind moves things (the tree and anything wooden). */
+#fieldWrap{perspective:900px;perspective-origin:50% -10%;margin-top:64px;padding:0 22px 26px}
+#yard{position:relative;transform:rotateY(var(--turn)) rotateX(var(--tilt));transform-origin:50% 100%;transform-style:preserve-3d;border-radius:14px;
   background:radial-gradient(60px 40px at 18% 30%,#4f6b4a66,#0000 70%),radial-gradient(80px 50px at 82% 62%,#4f6b4a55,#0000 70%),radial-gradient(70px 46px at 40% 88%,#5a5a7a44,#0000 70%),linear-gradient(#2f3d3a,#3a4d3c 60%,#33443a);
   box-shadow:inset 0 0 0 3px #0000004d,inset 0 0 40px #0b0a1499}
 /* the front of the ground: a low stone wall */
@@ -61,15 +62,17 @@ button:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 #0000}
   background:repeating-linear-gradient(90deg,#0000 0 30px,#1b162688 30px 32px),linear-gradient(#6b6590,#3c3856)}
 #field{padding:28px 12px 10px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 8px;position:relative;transform-style:preserve-3d}
 /* iron fence along the back, with the gate and a dead tree */
-.gy-back{position:absolute;left:4px;right:4px;bottom:calc(100% - 6px);height:40px;background:var(--fence) 0 100%/40px 40px repeat-x;transform-origin:50% 100%;transform:rotateX(calc(var(--tilt) * -1));transform-style:preserve-3d;pointer-events:none}
-.gy-gate{position:absolute;left:50%;bottom:0;width:64px;height:64px;margin-left:-32px;transform:translateZ(1px)}
-.gy-tree{position:absolute;left:1%;bottom:0;width:86px;height:86px;transform:translateZ(2px);transform-origin:50% 100%;animation:creak 7s ease-in-out infinite}
-@keyframes creak{0%,100%{transform:translateZ(2px) rotateZ(-1.2deg)}50%{transform:translateZ(2px) rotateZ(1.6deg)}}
+.gy-back{position:absolute;left:4px;right:4px;bottom:calc(100% - 6px);height:50px;background:var(--fence) 0 100%/50px 50px repeat-x;transform-origin:50% 100%;transform:rotateX(calc(var(--tilt) * -1));transform-style:preserve-3d;pointer-events:none}
+.gy-gate{position:absolute;left:50%;bottom:-2px;width:92px;height:92px;margin-left:-46px;transform:translateZ(1px)}
+/* the dead oak stands just outside the back corner; gusts bend it from the roots up */
+.gy-tree{position:absolute;left:-12%;bottom:-4px;width:150px;height:150px;transform:translateZ(-14px);transform-origin:50% 96%;animation:gust 9s ease-in-out infinite}
+@keyframes gust{0%,100%{transform:translateZ(-14px) skewX(0) rotateZ(-.4deg)}18%{transform:translateZ(-14px) skewX(-2.6deg) rotateZ(.8deg)}28%{transform:translateZ(-14px) skewX(-1deg) rotateZ(.2deg)}
+  42%{transform:translateZ(-14px) skewX(-4deg) rotateZ(1.2deg)}58%{transform:translateZ(-14px) skewX(-.6deg) rotateZ(-.2deg)}76%{transform:translateZ(-14px) skewX(-1.8deg) rotateZ(.5deg)}}
 /* fences down both sides stand straight up out of the ground */
-.gy-side{position:absolute;top:-30px;left:2px;height:30px;width:var(--fh,400px);background:var(--fence) 0 100%/30px 30px repeat-x;transform-origin:0 100%;transform:rotateZ(90deg) rotateX(-90deg);pointer-events:none}
+.gy-side{position:absolute;top:-44px;left:2px;height:44px;width:var(--fh,400px);background:var(--fence) 0 100%/44px 44px repeat-x;transform-origin:0 100%;transform:rotateZ(90deg) rotateX(-90deg);pointer-events:none}
 .gy-side.r{left:calc(100% - 2px)}
-.gy-lamp{position:absolute;bottom:-4px;width:46px;height:46px;transform-origin:50% 100%;transform:rotateX(calc(var(--tilt) * -1)) translateZ(2px);pointer-events:none}
-.gy-lamp.l{left:-14px}.gy-lamp.r{right:-14px}
+.gy-lamp{position:absolute;bottom:-6px;width:88px;height:88px;transform-origin:50% 100%;transform:rotateX(calc(var(--tilt) * -1)) translateZ(2px);pointer-events:none}
+.gy-lamp.l{left:-36px}.gy-lamp.r{right:-36px}
 .gy-lamp svg{animation:flick 3.1s steps(1) infinite}
 @keyframes flick{0%,100%{filter:none}43%{filter:brightness(1.25)}47%{filter:brightness(.85)}52%{filter:brightness(1.2)}}
 /* ground fog hangs just above the dirt, so headstones and crops poke up through it */
@@ -84,8 +87,14 @@ button:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 #0000}
 .plot{aspect-ratio:1;border-radius:38% 38% 10px 10px/20% 20% 10px 10px;background:repeating-linear-gradient(0deg,var(--dirt) 0 8px,var(--dirt2) 8px 16px);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;padding:0 0 13%;box-shadow:inset 0 0 0 2px #2a1a0e99;transform-style:preserve-3d;transform:translateZ(9px);transition:transform .12s}
 .plot::after{content:"";position:absolute;left:5px;right:5px;top:100%;height:9px;background:linear-gradient(#4a321e,#291a0f);border-radius:0 0 4px 4px;transform-origin:50% 0;transform:rotateX(-90deg)}
 .plot:active:not(:disabled){transform:translateZ(2px);box-shadow:inset 0 0 0 2px #2a1a0e99}
-.plot .hs{position:absolute;left:50%;bottom:calc(100% - 9px);width:46%;aspect-ratio:1;margin-left:-23%;transform-origin:50% 100%;transform:rotateX(calc(var(--tilt) * -1));pointer-events:none}
-.plot .hs svg{filter:drop-shadow(2.5px 0 0 #3c3856) drop-shadow(0 3px 2px #0007)}
+.plot .hs{position:absolute;left:50%;bottom:calc(100% - 9px);width:50%;aspect-ratio:1;margin-left:-25%;transform-origin:50% 100%;transform:rotateX(calc(var(--tilt) * -1));transform-style:preserve-3d;pointer-events:none}
+.plot .hs>svg{position:relative;filter:drop-shadow(0 3px 2px #0007)}
+/* each headstone is a slab: two darker copies behind the face give it a visible edge from the side */
+.plot .hs>i{position:absolute;inset:0;transform:translateZ(-2.4px)}.plot .hs>i+i{transform:translateZ(-4.8px)}
+.plot .hs>i svg{filter:brightness(.42) saturate(.6)}
+/* wooden markers rock in the wind, each on its own beat */
+.plot .hs.wood{transform-origin:50% 96%;animation:rock 6.5s var(--d,0s) ease-in-out infinite}
+@keyframes rock{0%,100%{transform:rotateX(calc(var(--tilt) * -1)) rotateZ(-.6deg)}30%{transform:rotateX(calc(var(--tilt) * -1)) rotateZ(1.8deg)}45%{transform:rotateX(calc(var(--tilt) * -1)) rotateZ(.6deg)}62%{transform:rotateX(calc(var(--tilt) * -1)) rotateZ(2.2deg)}}
 .plot.fresh .hs{animation:thump .5s ease-out}
 @keyframes thump{0%{transform:rotateX(calc(var(--tilt) * -1)) translateZ(46px)}55%{transform:rotateX(calc(var(--tilt) * -1 + 16deg))}80%{transform:rotateX(calc(var(--tilt) * -1 - 8deg))}}
 .plot .art{width:70%;height:70%;flex:none;transform-origin:50% 88%;transform:rotateX(calc(var(--tilt) * -1)) translateZ(2px);animation:popIn .42s cubic-bezier(.3,1.5,.5,1) backwards}
@@ -264,7 +273,7 @@ textarea{width:100%;height:90px;border-radius:10px;border:0;background:#00000044
 .vol input{flex:1;min-width:0;height:28px;accent-color:var(--gold);touch-action:pan-y}
 .snd.muted .vol{opacity:.4}
 /* People who ask their phone for less motion keep the 3D look but nothing moves on its own */
-@media (prefers-reduced-motion:reduce){.t-logo,.t-hand,.t-star,#playBtn{animation:none}#title{transition:none}#fieldWrap,.gy-tree,.gy-lamp svg,.fog,.wisp,.plot.fresh .hs,.ring{animation:none}.wisp{display:none}.plot .art,.plot.ready .art,.plot.warn .art,.plot.warn,.plot .wet.dry,#hordeList .zcard .e,.u.cheer .b,.stage.shake,.sheet>div,#result .card,.chip.bump,.chip.bump .mi,nav button.bump,#lvlUp .st{animation:none}#lvlUp .card{animation:lvlStill 3.2s both}.u .b{transition:none}}
+@media (prefers-reduced-motion:reduce){.t-logo,.t-hand,.t-star,#playBtn{animation:none}#title{transition:none}#fieldWrap,.gy-tree,.plot .hs.wood,.gy-lamp svg,.fog,.wisp,.plot.fresh .hs,.ring{animation:none}.wisp{display:none}.plot .art,.plot.ready .art,.plot.warn .art,.plot.warn,.plot .wet.dry,#hordeList .zcard .e,.u.cheer .b,.stage.shake,.sheet>div,#result .card,.chip.bump,.chip.bump .mi,nav button.bump,#lvlUp .st{animation:none}#lvlUp .card{animation:lvlStill 3.2s both}.u .b{transition:none}}
 @keyframes lvlStill{0%,90%{opacity:1}100%{opacity:0}}
 </style>
 </head>
@@ -333,7 +342,7 @@ textarea{width:100%;height:90px;border-radius:10px;border:0;background:#00000044
   <div class="t-top" aria-hidden="true">
     <div class="t-moon"></div><i class="t-star" style="left:8%;top:20px"></i><i class="t-star" style="left:30%;top:6px;animation-delay:-.8s"></i><i class="t-star" style="left:55%;top:30px;animation-delay:-1.5s"></i><i class="t-star" style="left:16%;top:48px;animation-delay:-2s"></i>
     <h1 class="t-logo"><span>Grave</span><span>Acres</span></h1>
-    <div class="t-scene"><span class="t-tree" data-art="tree"></span><span class="t-s a" data-art="stone1"></span><span class="t-s b" data-art="stone0"></span><span class="t-s c" data-art="stone3"></span><span class="t-hand" data-art="hand"></span></div>
+    <div class="t-scene"><span class="t-tree" data-art="tree"></span><span class="t-s a" data-art="garg0"></span><span class="t-s b" data-art="stone0"></span><span class="t-s c" data-art="wood2"></span><span class="t-hand" data-art="hand"></span></div>
   </div>
   <div class="t-menu">
     <div class="hint" id="titleInfo"></div>
@@ -346,7 +355,7 @@ textarea{width:100%;height:90px;border-radius:10px;border:0;background:#00000044
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="lvlUp" role="status" aria-live="polite"></div>
 
-<script src="art.js?v=12"></script>
-<script src="game.js?v=12"></script>
+<script src="art.js?v=13"></script>
+<script src="game.js?v=13"></script>
 </body>
 </html>
