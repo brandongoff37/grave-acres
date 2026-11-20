@@ -74,6 +74,12 @@ Each town must be overrun before the next unlocks. After each win the town rebui
 - Locked plots are flat and shorter than open ones so new players don't have to scroll.
 - `#fieldWrap` slowly moves its `perspective-origin` left and right (the "look" animation), which is what makes near and far things shift.
 
+## Title screen and sound
+- `#title` covers the game every time it opens. `showTitle()` fills it in; tapping Play sets `started = true`, starts the music and then shows the welcome, daily bonus or "ready to harvest" message (`greet()`). Torch mobs wait until Play has been tapped.
+- Phones only allow sound after a tap, which is why the music starts from the Play button.
+- All sound is generated with Web Audio in `game.js` (no audio files). `SONG` holds the music as numbers: 8 bars of 16 steps at 72 beats per minute (slow), with a pedal note and a held chord per bar and a list of `[step, note, length]` for the tune. `organ()` makes the pipe-organ sound by stacking pure tones. To change the speed, change `bpm`. `musicStep()` plays one step; `musicTick()` schedules steps a fraction of a second ahead.
+- Volume: `S.musicVol` and `S.sfxVol` (0 to 1, saved) feed two volume knobs (`MG` for music, `SG` for effects). `S.sound` is the master on/off. `soundUI()` / `bindSound()` draw and wire the sliders wherever they are shown.
+
 ## Torch mobs
 - If the game is open when a mob arrives, the fight is shown on the battlefield (`playBattle(..., atHome=true)`), then the result is applied. If the game was closed, the result is applied straight away and shown as a report.
 - Start after your first overrun town. Arrive every 7–12 minutes (also resolved when you reopen the game).

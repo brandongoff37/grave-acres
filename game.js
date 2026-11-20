@@ -62,7 +62,7 @@ const witherWindow = s => Math.max(300, s.time*4);   // seconds a ripe crop last
 
 // ================= State =================
 const KEY='graveacres.v1';
-function fresh(){return {coins:50,bones:0,level:1,xp:0,plots:Array.from({length:20},(_,i)=>i<8?{}:null),horde:[],beaten:{},zid:1,goal:0,sound:true,fast:false,
+function fresh(){return {coins:50,bones:0,level:1,xp:0,plots:Array.from({length:20},(_,i)=>i<8?{}:null),horde:[],beaten:{},zid:1,goal:0,sound:true,musicVol:.6,sfxVol:.8,fast:false,
   stats:{harvests:0,raised:0,raids:0,wins:0,planted:0,mutants:0,mobWins:0,mobLosses:0,withered:0}}}
 let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!Array.isArray(S.plots))S=fresh();
@@ -89,11 +89,77 @@ document.querySelectorAll('[data-art]').forEach(el=>el.innerHTML=art(el.dataset.
 $('logo').innerHTML=art('hand');
 
 // ================= Sound =================
-let AC;
+// Everything is made by the phone's own sound chip (Web Audio), so there are no sound files to download.
+// Two volume knobs: MG for music, SG for sound effects. S.sound is the master on/off switch.
+let AC,MG,SG,NOISE;
+function audio(){
+  if(AC)return AC;
+  try{AC=new (window.AudioContext||window.webkitAudioContext)();MG=AC.createGain();SG=AC.createGain();MG.connect(AC.destination);SG.connect(AC.destination);
+    NOISE=AC.createBuffer(1,AC.sampleRate*.2,AC.sampleRate);const d=NOISE.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;applyVol()}catch(e){AC=null}
+  return AC;
+}
+function applyVol(){if(!AC)return;MG.gain.value=S.sound?S.musicVol:0;SG.gain.value=S.sound?S.sfxVol*1.25:0}
 function tone(f,d=.09,type='square',v=.035,delay=0){
-  if(!S.sound)return;
-  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+delay;const o=AC.createOscillator(),g=AC.createGain();
-    o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}
+  if(!S.sound||!S.sfxVol||!audio())return;
+  try{const t=AC.currentTime+delay;const o=AC.createOscillator(),g=AC.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(SG);o.start(t);o.stop(t+d+.02)}catch(e){}
+}
+// ---- Background music: "Midnight at Grave Acres", an original slow, ominous pipe-organ piece in D minor ----
+// Written in the style of old organ music: a deep pedal note held under each bar, a held chord in the middle,
+// and a tune on top with quick "mordent" flicks, a long diminished run and a tense ending that pulls back to the start.
+// Notes are piano key numbers (69 = the A above middle C). Each bar is 16 steps.
+const SONG={
+  bpm:72,
+  chords:[[38,[50,53,57]],[37,[52,55,57]],[34,[50,53,58]],[33,[49,52,57]],[31,[50,55,58]],[37,[52,55,58]],[33,[50,53,57]],[33,[49,52,55]]],   // [pedal note, held chord]
+  lead:[   // [step, note, length in steps]
+    [[0,81,1],[1,79,1],[2,81,6],[8,77,2],[10,76,2],[12,74,4]],
+    [[0,76,1],[1,74,1],[2,76,6],[8,73,2],[10,76,2],[12,79,4]],
+    [[0,77,6],[6,74,2],[8,70,4],[12,74,2],[14,77,2]],
+    [[0,76,4],[4,73,4],[8,69,8]],
+    [[0,79,1],[1,77,1],[2,79,6],[8,74,2],[10,70,2],[12,67,4]],
+    [[0,82,2],[2,79,2],[4,76,2],[6,73,2],[8,70,2],[10,67,2],[12,64,2],[14,61,2]],
+    [[0,62,4],[4,65,4],[8,69,4],[12,74,4]],
+    [[0,73,6],[6,76,2],[8,79,4],[12,76,2],[14,73,2]],
+  ],
+};
+const music={on:false,step:0,next:0,timer:0};
+const hz = m => 440*Math.pow(2,(m-69)/12);
+// One organ pipe sound: several pure tones stacked an octave or so apart (like pulling out organ stops),
+// swelling in and dying away slowly. "bite" adds a thin buzzy edge so it still sounds like an arcade machine.
+function organ(m,t,d,v,bite){
+  const g=AC.createGain(),f=hz(m);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+.045);g.gain.setValueAtTime(v,Math.max(t+.05,t+d-.06));g.gain.linearRampToValueAtTime(.0001,t+d+.14);g.connect(MG);
+  [[1,1,'sine'],[2,.5,'sine'],[3,.22,'sine'],[4,.16,'triangle']].concat(bite?[[1,bite,'square']]:[]).forEach(([mult,amp,type])=>{
+    const o=AC.createOscillator(),a=AC.createGain();o.type=type;o.frequency.setValueAtTime(f*mult,t);a.gain.value=amp;o.connect(a);a.connect(g);o.start(t);o.stop(t+d+.18)});
+}
+// A soft, deep thump, used as a slow heartbeat
+function mThump(t,v){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(38,t+.16);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(g);g.connect(MG);o.start(t);o.stop(t+.25)}
+function musicStep(n,t){
+  const st=60/SONG.bpm/4,bar=Math.floor(n/16)%8,i=n%16,[pedal,chord]=SONG.chords[bar];
+  if(i===0){organ(pedal,t,st*15.5,.07);organ(pedal+12,t,st*15.5,.028);   // the octave above is what small phone speakers can actually play
+    chord.forEach(m=>organ(m,t,st*15.5,.017))}                 // pedal note and chord held for the whole bar
+  for(const [s,m,len] of SONG.lead[bar]) if(s===i){organ(m,t,st*len*.92,.03,.1);organ(m,t+st*3,st*len*.8,.008);organ(m,t+st*6,st*len*.7,.004)}   // tune, with echoes like a big stone hall
+  if(i===0)mThump(t,.1);if(i===3)mThump(t,.06);                                                    // heartbeat: lub-dub
+}
+function musicTick(){
+  if(!music.on||!AC)return;
+  if(!S.sound||!S.musicVol||document.hidden){music.next=0;return}                // silent: don't waste battery
+  if(music.next<AC.currentTime)music.next=AC.currentTime+.08;
+  while(music.next<AC.currentTime+.3){musicStep(music.step++,music.next);music.next+=60/SONG.bpm/4}
+}
+// Phones only allow sound after a tap, so the music starts from the Play button on the title screen
+function startMusic(){if(!audio())return;if(AC.state==='suspended')AC.resume();if(music.on)return;music.on=true;music.step=0;music.timer=setInterval(musicTick,70)}
+document.addEventListener('visibilitychange',()=>{if(!AC)return;if(document.hidden)AC.suspend();else if(music.on)AC.resume()});
+// The sound controls, used on the title screen and in the menu
+function soundUI(){const row=(label,k)=>'<label class="vol"><span>'+label+'</span><input type="range" min="0" max="100" step="5" data-vol="'+k+'" value="'+Math.round(S[k]*100)+'" aria-label="'+label+' volume"><output>'+Math.round(S[k]*100)+'%</output></label>';
+  return '<div class="snd">'+row('Music','musicVol')+row('Sound effects','sfxVol')+'<button class="sndMute" style="width:100%"></button></div>'}
+function bindSound(root){
+  const mute=root.querySelector('.sndMute'),label=()=>{mute.textContent=S.sound?'All sound: On (tap to mute)':'All sound: Off (tap to turn on)';root.querySelector('.snd').classList.toggle('muted',!S.sound)};label();
+  mute.onclick=()=>{S.sound=!S.sound;applyVol();save();label();sfx.plant()};
+  root.querySelectorAll('input[data-vol]').forEach(inp=>{
+    inp.oninput=()=>{S[inp.dataset.vol]=inp.value/100;inp.nextElementSibling.textContent=inp.value+'%';applyVol()};
+    inp.onchange=()=>{save();if(inp.dataset.vol==='sfxVol')sfx.coin()};
+  });
 }
 const sfx = {
   plant:()=>tone(420,.07,'triangle',.05),
@@ -176,7 +242,7 @@ const nextLockedIndex = () => S.plots.findIndex(p=>p===null);
 
 // The side fences need to know how deep the yard is, and the fence picture is handed to the CSS as a background
 let yardH=0;function sizeYard(){const h=$('field').offsetHeight;if(h&&h!==yardH){yardH=h;$('yard').style.setProperty('--fh',h+'px')}}
-$('yard').style.setProperty('--fence','url("data:image/svg+xml,'+encodeURIComponent(art('fence').replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))+'")');
+document.documentElement.style.setProperty('--fence','url("data:image/svg+xml,'+encodeURIComponent(art('fence').replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))+'")');
 addEventListener('resize',sizeYard);
 function renderField(){
   const f=$('field');
@@ -306,7 +372,7 @@ function renderHorde(){
   const sorted=[...S.horde].sort((a,b)=>zPower(b)-zPower(a));
   $('hordeList').innerHTML=sorted.length?sorted.map(z=>{const st=zStats(z);
     return '<div class="zcard'+(z.mut?' mut':'')+'" onclick="releaseZ('+z.id+')">'+(z.mut?'<span class="badge">'+art('sparkle')+'</span>':'')+'<div class="e">'+art(z.s)+'</div>'+st.name+'<br><small style="color:var(--muted)">atk '+st.atk+' · hp '+st.hp+'</small>'+(st.ab?'<br><span class="ab">'+st.abName+'</span>':'')+'</div>'}).join('')
-    :'<div class="hint" style="grid-column:1/-1">No zombies yet. Plant a Shambler on the farm!</div>';
+    :'<div class="hint" style="grid-column:1/-1">No zombies yet. Plant a Shambler on the Harvest tab!</div>';
   const plain=S.horde.filter(z=>!z.mut);
   $('serumWrap').innerHTML='<div class="row" style="margin-top:12px"><div class="em">'+art('flask')+'</div><div class="info"><b>Mutation Serum</b>Turns a random regular zombie into a mutant (+50% stats). Earn bones from raids and mobs.</div><button class="gold" '+(S.bones<SERUM_COST||!plain.length?'disabled':'')+' onclick="serum()">'+mi('bone')+' '+SERUM_COST+'</button></div>';
 }
@@ -385,7 +451,7 @@ function renderRaid(){
   if(fighting)return;
   $('raidPick').style.display='';$('battle').style.display='none';
   const best=power(strongest(squadCap()));
-  $('raidPick').innerHTML='<div class="hint">Best squad power: <b style="color:var(--ink)">'+Math.round(best)+'</b> · Squad size: <b style="color:var(--ink)">'+squadCap()+'</b><br>'+(S.horde.length?'Fallen zombies are usually lost. Towns rebuild stronger every time you overrun them.':'<b style="color:var(--gold)">You have no zombies yet.</b> Plant a zombie seed on the Farm, harvest it, then come back to raid.')+'</div>'+
+  $('raidPick').innerHTML='<div class="hint">Best squad power: <b style="color:var(--ink)">'+Math.round(best)+'</b> · Squad size: <b style="color:var(--ink)">'+squadCap()+'</b><br>'+(S.horde.length?'Fallen zombies are usually lost. Towns rebuild stronger every time you overrun them.':'<b style="color:var(--gold)">You have no zombies yet.</b> Plant a zombie seed on the Harvest tab, dig it up when it is ready, then come back to raid.')+'</div>'+
     mobRow()+
     TOWNS.map((t,i)=>{
       const lock=S.level<t.lvl||(i>0&&!wins(i-1));const fp=foePower(t,i);const o=odds(best/fp);const L=loot(t,i);
@@ -536,7 +602,7 @@ function mobTick(){
   const soon=left<180;
   $('mobBanner').style.display=soon?'flex':'none';$('nbRaid').hidden=!soon;
   if(soon)$('mobTxt').innerHTML='<b style="color:#fff">A torch mob is coming in '+clock(left)+'!</b><br>Your strongest '+squadCap()+' zombies will defend. Defenders: power '+Math.round(power(strongest(squadCap())))+'.';
-  if(left<=0&&!fighting&&!$('sheet').classList.contains('show'))resolveMob(left<-10);
+  if(left<=0&&started&&!fighting&&!$('sheet').classList.contains('show'))resolveMob(left<-10);
 }
 // When a mob arrives while you're playing, you watch your defenders fight it at the gate.
 // If it came while the game was closed, you just get the report.
@@ -579,13 +645,15 @@ $('menuBtn').onclick=()=>{
   const st=S.stats;
   openSheet('<h3>'+mi('gear')+'Menu</h3>'+
     '<div class="stats"><div><b>'+st.harvests+'</b>crops harvested</div><div><b>'+st.raised+'</b>zombies raised</div><div><b>'+st.wins+' / '+st.raids+'</b>raids won</div><div><b>'+st.mobWins+' / '+(st.mobWins+st.mobLosses)+'</b>mobs repelled</div></div>'+
-    '<button style="width:100%" id="soundBtn">Sound: '+(S.sound?'On':'Off')+'</button>'+
+    '<h4>Sound</h4>'+soundUI()+
     '<h4>Move your farm to another device</h4><p style="margin:4px 0">Copy your save code, then paste it into the game on your other phone.</p>'+
     '<div class="toolbar" style="margin-top:4px"><button id="exportBtn">Copy save code</button><button id="importBtn">Load a save code</button></div><div id="saveArea"></div>'+
     '<h4>Install on your phone</h4><p><b style="color:var(--ink)">iPhone:</b> open in Safari → Share → Add to Home Screen.<br><b style="color:var(--ink)">Android:</b> open in Chrome → ⋮ menu → Install app.</p>'+
+    '<button style="width:100%;margin-bottom:8px" id="titleBtn">Back to the title screen</button>'+
     '<button class="danger" style="width:100%" id="resetBtn">Start a new farm</button>'+
     '<button style="width:100%;margin-top:8px" onclick="closeSheet()">Close</button>');
-  $('soundBtn').onclick=e=>{S.sound=!S.sound;save();e.currentTarget.textContent='Sound: '+(S.sound?'On':'Off');sfx.plant()};
+  bindSound($('sheetBody'));
+  $('titleBtn').onclick=()=>{closeSheet();showTitle()};
   $('exportBtn').onclick=()=>{
     const code='GA1:'+btoa(unescape(encodeURIComponent(JSON.stringify(S))));
     $('saveArea').innerHTML='<textarea readonly id="saveCode">'+code+'</textarea>';
@@ -612,16 +680,37 @@ function refresh(){hud();if(view==='farm'){renderGoal();renderField()}if(view===
 setInterval(()=>{if(document.hidden)return;if(view==='farm'){renderField();renderGoal()}mobTick()},500);
 setInterval(()=>{if(!document.hidden&&view==='raid'&&!fighting&&!$('sheet').classList.contains('show'))renderRaid()},5000);
 
-// ================= Welcome, daily bonus, away summary =================
+// ================= Title screen, welcome, daily bonus, away summary =================
+const HOWTO='<p>Grow spooky crops to earn coins — but harvest them before they wither. Plant zombie seeds to raise a horde, pick your best squad, and raid nearby towns for coins, bones and XP.</p><p>Careful: towns you raid will send torch mobs back at your graveyard. Keep a strong horde at home!</p>';
 function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
-refresh();
-const readyOnLoad=S.plots.filter(p=>plotState(p)==='ready').length, wiltOnLoad=S.plots.filter(p=>plotState(p)==='withered').length;
-if(!S.seen){
-  S.seen=1;S.lastDay=today();save();
-  setTimeout(()=>openSheet('<h3>'+mi('hand')+'Welcome to Grave Acres</h3><p>Grow spooky crops to earn coins — but harvest them before they wither. Plant zombie seeds to raise a horde, pick your best squad, and raid nearby towns for coins, bones and XP.</p><p>Careful: towns you raid will send torch mobs back at your farm. Keep a strong horde at home!</p><p>Follow the goals at the top of the farm to get started.</p><button class="gold" style="width:100%" onclick="closeSheet()">Start farming</button>'),300);
-}else if(S.lastDay!==today()){
-  const bonus=20+5*S.level;S.coins+=bonus;S.lastDay=today();save();hud();
-  setTimeout(()=>openSheet('<h3>'+mi('gift')+'Daily bonus</h3><p>Welcome back! The crows left you <b style="color:var(--gold)">'+bonus+' coins</b>.'+(readyOnLoad?' '+readyOnLoad+' plot'+(readyOnLoad>1?'s are':' is')+' ready to harvest.':'')+(wiltOnLoad?' '+wiltOnLoad+' crop'+(wiltOnLoad>1?'s':'')+' withered while you were gone.':'')+'</p><button class="gold" style="width:100%" onclick="closeSheet()">Thanks!</button>'),300);
-}else if(readyOnLoad||wiltOnLoad){setTimeout(()=>toast((readyOnLoad?readyOnLoad+' ready to harvest':'')+(readyOnLoad&&wiltOnLoad?' · ':'')+(wiltOnLoad?wiltOnLoad+' withered':'')),400)}
+let started=false,greeted=false;
+// The title screen shows every time the game opens. Tapping Play is also what lets the phone start the music.
+function showTitle(){
+  started=false;
+  $('titleInfo').innerHTML=S.seen?'Level '+S.level+' · '+S.horde.length+' zombie'+(S.horde.length===1?'':'s')+' · '+fmtN(S.coins)+' coins':'Grow crops. Raise the dead. Raid the neighbors.';
+  $('playBtn').textContent=S.seen?'Continue':'Play';$('titlePanel').innerHTML='';$('title').classList.remove('gone');$('title').hidden=false;
+}
+function titlePanel(kind){
+  const el=$('titlePanel');if(el.dataset.k===kind&&el.innerHTML){el.innerHTML='';return}
+  el.dataset.k=kind;el.innerHTML=kind==='sound'?soundUI():HOWTO;if(kind==='sound')bindSound(el);
+}
+$('tSound').onclick=()=>{startMusic();titlePanel('sound')};
+$('tHow').onclick=()=>titlePanel('how');
+$('playBtn').onclick=()=>{
+  startMusic();sfx.coin();started=true;
+  const t=$('title');t.classList.add('gone');setTimeout(()=>{t.hidden=true},motionOK()?450:0);
+  refresh();if(!greeted){greeted=true;greet()}
+};
+function greet(){
+  const readyN=S.plots.filter(p=>plotState(p)==='ready').length, wiltN=S.plots.filter(p=>plotState(p)==='withered').length;
+  if(!S.seen){
+    S.seen=1;S.lastDay=today();save();
+    setTimeout(()=>openSheet('<h3>'+mi('hand')+'Welcome to Grave Acres</h3>'+HOWTO+'<p>Follow the goals at the top of the Harvest screen to get started.</p><button class="gold" style="width:100%" onclick="closeSheet()">Start farming</button>'),300);
+  }else if(S.lastDay!==today()){
+    const bonus=20+5*S.level;S.coins+=bonus;S.lastDay=today();save();hud();
+    setTimeout(()=>openSheet('<h3>'+mi('gift')+'Daily bonus</h3><p>Welcome back! The crows left you <b style="color:var(--gold)">'+bonus+' coins</b>.'+(readyN?' '+readyN+' plot'+(readyN>1?'s are':' is')+' ready to harvest.':'')+(wiltN?' '+wiltN+' crop'+(wiltN>1?'s':'')+' withered while you were gone.':'')+'</p><button class="gold" style="width:100%" onclick="closeSheet()">Thanks!</button>'),300);
+  }else if(readyN||wiltN){setTimeout(()=>toast((readyN?readyN+' ready to harvest':'')+(readyN&&wiltN?' · ':'')+(wiltN?wiltN+' withered':'')),400)}
+}
+refresh();showTitle();
 
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}

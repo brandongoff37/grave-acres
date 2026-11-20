@@ -108,9 +108,9 @@ const ART = {
   mound: `<path d="M22 49 V27 a10 10 0 0 1 20 0 V49 Z" fill="url(#ga-ts)" ${O}/><path d="M32 23 v12 M27.5 28 h9" stroke="#55507a" stroke-width="2.6" stroke-linecap="round"/>
     <path d="M38 30 l-3 4 l2 3" stroke="#55507a" stroke-width="1.2" fill="none"/><path d="M24 47 q3 -5 6 -1 q2 -3 4 0" fill="#5ea04a" ${O2}/>${shine(26,25,2,4,.45,20)}
     <path d="M5 60 Q32 35 59 60Z" fill="url(#ga-dt)" ${O}/><path d="M14 56 q4 -3 8 -1 M41 54 q5 -2 9 1" stroke="#2a1a0e" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="31" cy="54" r="1.6" fill="#2a1a0e"/>`,
-  hand: `<path d="M24 48 L23 37 Q22 29 26 27 L26 14 a2.3 2.3 0 0 1 4.6 0 V25 L30.8 10.5 a2.3 2.3 0 0 1 4.6 0 V25 L35.6 12.5 a2.3 2.3 0 0 1 4.6 0 V29 L42.5 23 a2.3 2.3 0 0 1 4.3 1.6 L42 39 Q41 44 40 48 Z" fill="url(#ga-zg)" ${O}/>
-    <path d="M26.8 15 h3 M31.6 11.5 h3 M36.4 13.5 h3" stroke="#e8f7d6" stroke-width="1.4" stroke-linecap="round"/><path d="M28 37 q4 2 9 0" stroke="#3f6e2e" stroke-width="1.3" fill="none"/>
-    <path d="M21.5 49 L24 43 L28 46 L32 42 L36 46 L40 42 L43 48 L42.5 52 H22Z" fill="url(#ga-bl)" ${O}/>
+  hand: `<path d="M22 48 L20.6 37 Q20 30 21.4 27 L21.4 17.5 a2.1 2.1 0 0 1 4.2 0 V26 L26.1 12.5 a2.1 2.1 0 0 1 4.2 0 V25 L30.8 10 a2.1 2.1 0 0 1 4.2 0 V25.5 L35.5 13.5 a2.1 2.1 0 0 1 4.2 0 V30 L42.6 24 a2.3 2.3 0 0 1 4.3 1.6 L42 39 Q41 44 40 48 Z" fill="url(#ga-zg)" ${O}/>
+    <path d="M22.3 18.5 h2.6 M27 13.5 h2.6 M31.7 11 h2.6 M36.4 14.5 h2.6" stroke="#e8f7d6" stroke-width="1.4" stroke-linecap="round"/><path d="M26 37 q5 2.2 11 0" stroke="#3f6e2e" stroke-width="1.3" fill="none"/>
+    <path d="M19.5 49 L22 43 L26 46 L30 42 L34 46 L38 42 L42 47 L42.5 52 H20Z" fill="url(#ga-bl)" ${O}/>
     <path d="M4 61 Q32 41 60 61Z" fill="url(#ga-dt)" ${O}/><circle cx="17" cy="56" r="2" fill="#2a1a0e"/><circle cx="47" cy="56" r="2.4" fill="#2a1a0e"/><path d="M27 55 q4 -2 8 0" stroke="#2a1a0e" stroke-width="1.4" fill="none"/>`,
 
   wilt: `<ellipse cx="32" cy="55" rx="21" ry="6.5" fill="url(#ga-dt)" ${O}/><path d="M44 56 q4 -3 8 -1 q-3 3 -8 1Z" fill="#8a6a3a" ${O2}/>

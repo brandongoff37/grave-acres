@@ -1,5 +1,12 @@
 # Changelog
 
+## v11 — Title screen, music and volume controls
+- **Title screen:** the game now opens on a start menu with the Grave Acres logo, a Play (or Continue) button, Sound settings and How to play. You can get back to it from the menu.
+- **Background music:** "Midnight at Grave Acres", an original slow, ominous organ piece in the style of old pipe-organ music: a deep held bass note, held chords, and a creeping tune with quick flicks and a long tumbling run, echoing like a stone hall, over a slow heartbeat. It is made by the phone's own sound chip, so there is no music file to download and it works offline. It starts when you tap Play and pauses when you leave the game.
+- **Volume controls:** separate sliders for music and sound effects, plus one button that mutes everything. They are on the title screen and in the menu, and your choices are remembered.
+- The **Farm** tab is now called **Harvest**.
+- **App icon:** the zombie hand now has four fingers and a thumb (it had three fingers). The same hand is used in the game. If the game is already on your home screen, remove it and add it again to see the new icon.
+
 ## v10 — The graveyard
 - **The farm is now a graveyard.** Each plot is a grave: a bed of dirt with its own headstone (four designs). Empty plots are open graves, zombie seeds stir under the dirt with glowing eyes, and ground you haven't bought yet is overgrown with brambles (and takes less room on screen).
 - **More 3D:** an iron fence and stone gate stand along the back, fences run down both sides, a dead tree with a crow creaks in the corner, lanterns flicker at the front, fog drifts just above the ground and wisps float through it. The view sways slowly so near and far things shift against each other. Headstones thump down when you plant.

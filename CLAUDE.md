@@ -21,7 +21,7 @@ It installs to the home screen on iPhone (Safari → Share → Add to Home Scree
 | File | What it holds |
 |---|---|
 | `index.html` | Page layout and all CSS. Loads `art.js` then `game.js`. |
-| `game.js` | All game logic: data tables (seeds, townsfolk, towns, goals), farm, horde, battle engine, raids, torch mobs, menu, save system. |
+| `game.js` | All game logic: data tables (seeds, townsfolk, towns, goals), farm, horde, battle engine, raids, torch mobs, menu, save system, title screen, and all sound and music (generated in code, no audio files). |
 | `art.js` | Every picture in the game as hand-drawn inline SVG on a 64×64 grid, plus shared gradients. `art(key)` returns an `<svg>` string. |
 | `sw.js` | Service worker for offline play and updates. |
 | `manifest.json`, `icon-*.png`, `apple-touch-icon.png` | Install metadata and app icons. |
@@ -35,7 +35,7 @@ It installs to the home screen on iPhone (Safari → Share → Add to Home Scree
    - in `index.html`: `art.js?v=N` and `game.js?v=N`
    - in `sw.js`: `CACHE = 'grave-acres-vN'` and the same `?v=N` entries in `FILES`
    `npm run bump` does all of this in one step.
-   (Current: **v10**.)
+   (Current: **v11**.)
 2. **Never break old saves.** Saves live in `localStorage` under `graveacres.v1`. New fields go in
    `fresh()` and are filled in by `migrate()` in `game.js`. Keep seed/zombie `id`s stable
    (`radish`, `corn`, `pump`, `egg`, `mush`, `shamb`, `sprint`, `brute`, `mummy`, `vamp`).
