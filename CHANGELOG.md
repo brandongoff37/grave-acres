@@ -4,8 +4,8 @@
 ## v14 — made for playing sideways (2026-11-20)
 - **Landscape is now the main layout on phones.** The Harvest, Horde and Raid tabs become a rail down the left side, the graveyard fills the middle, and the goal, Harvest all button and tips sit in a column on the right. Nothing needs scrolling on the Harvest screen.
 - The graveyard is laid out 5 graves across and 4 deep in landscape, with wider, shallower graves and a steeper view, so it fits a short, wide screen. Its width is capped by the screen's height so the front row never falls off the bottom.
-- Raid: the battlefield on the left, the play-by-play and buttons on the right. Horde and squad pickers show more zombies per row. The title screen puts the logo on the left and the menu on the right.
-- The installed app now opens sideways on Android (manifest orientation is landscape). In portrait the old layout still works, and the title screen suggests turning the phone sideways.
+- Raid: the battlefield on the left, the play-by-play and buttons on the right. Horde and squad pickers show more zombies per row. The title screen stays an upright (portrait) screen.
+- The title screen is held upright and the game is played sideways. On the installed Android app the screen turns for you: upright on the title screen, sideways once you tap Play (`screen.orientation.lock`). Other phones can't be turned by a web page, so the title screen says "Tap Play, then turn your phone sideways." Portrait play still works.
 - Playtest: new checks that the graveyard fits on two landscape phone sizes.
 ## v13 — the graveyard, seen from the side (2026-11-20)
 - The camera now stands off to one side and lower down, so the yard reads as a real 3D patch of ground. The whole graveyard no longer sways.

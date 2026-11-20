@@ -332,15 +332,6 @@ textarea{width:100%;height:90px;border-radius:10px;border:0;background:#00000044
   .sheet .grid4{grid-template-columns:repeat(6,minmax(0,1fr))}
   .sheet>div{max-width:640px;max-height:88vh;padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
 
-  /* Title screen: the logo and scene on the left, the menu on the right */
-  #title{flex-direction:row;align-items:center;justify-content:center;gap:4vw;padding:calc(env(safe-area-inset-top) + 8px) max(16px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 8px) max(16px,env(safe-area-inset-left))}
-  .t-top{max-width:430px;flex:1 1 0}
-  .t-logo{margin-top:30px;font-size:min(9vw,64px)}
-  .t-scene{height:120px}
-  .t-tree{width:96px;height:96px}.t-hand{width:100px;height:100px;margin-left:-50px}
-  .t-s{width:46px;height:46px}.t-s.b{width:52px;height:52px}.t-s.c{width:42px;height:42px}
-  .t-menu{flex:0 1 300px;margin-top:0;align-self:center}
-  #titlePanel{max-height:40vh;overflow:auto}
   .rotate-hint{display:none}
 }
 /* Small phones on their side: a slimmer tab rail and side column leave more room for the graves */
@@ -349,7 +340,8 @@ textarea{width:100%;height:90px;border-radius:10px;border:0;background:#00000044
   #v-farm.show{grid-template-columns:minmax(0,1fr) 148px}
   .title{font-size:16px}
 }
-/* In portrait on a phone, suggest turning it sideways (shown on the title screen only) */
+/* The title screen is a portrait screen. In portrait on a phone it says to turn the phone sideways after Play.
+   If the phone is already sideways, the same upright layout is kept and simply scrolls. */
 .rotate-hint{display:none}
 @media (orientation:portrait) and (max-width:600px) and (pointer:coarse){.rotate-hint{display:flex;align-items:center;justify-content:center;gap:8px}}
 .rotate-hint .ph{width:22px;height:14px;border:2px solid currentColor;border-radius:3px;animation:turn 2.4s ease-in-out infinite}
@@ -428,7 +420,7 @@ textarea{width:100%;height:90px;border-radius:10px;border:0;background:#00000044
   </div>
   <div class="t-menu">
     <div class="hint" id="titleInfo"></div>
-    <div class="hint rotate-hint"><span class="ph" aria-hidden="true"></span>Best played with your phone turned sideways</div>
+    <div class="hint rotate-hint"><span class="ph" aria-hidden="true"></span>Tap Play, then turn your phone sideways</div>
     <button class="gold" id="playBtn">Play</button>
     <div class="toolbar"><button id="tSound">Sound</button><button id="tHow">How to play</button></div>
     <div id="titlePanel"></div>

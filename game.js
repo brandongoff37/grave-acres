@@ -699,8 +699,11 @@ const HOWTO='<p>Grow spooky crops to earn coins — but harvest them before they
 function today(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
 let started=false,greeted=false;
 // The title screen shows every time the game opens. Tapping Play is also what lets the phone start the music.
+// The title screen is held upright; the game itself is played sideways. Where the phone allows it
+// (the installed app on Android), the screen turns for you. Elsewhere this quietly does nothing.
+function lockOrientation(o){try{const so=screen.orientation;if(so&&so.lock)so.lock(o).catch(()=>{})}catch(e){}}
 function showTitle(){
-  started=false;
+  started=false;lockOrientation('portrait');
   $('titleInfo').innerHTML=S.seen?'Level '+S.level+' · '+S.horde.length+' zombie'+(S.horde.length===1?'':'s')+' · '+fmtN(S.coins)+' coins':'Grow crops. Raise the dead. Raid the neighbors.';
   $('playBtn').textContent=S.seen?'Continue':'Play';$('titlePanel').innerHTML='';$('title').classList.remove('gone');$('title').hidden=false;
 }
@@ -711,6 +714,7 @@ function titlePanel(kind){
 $('tSound').onclick=()=>{startMusic();titlePanel('sound')};
 $('tHow').onclick=()=>titlePanel('how');
 $('playBtn').onclick=()=>{
+  lockOrientation('landscape');
   startMusic();sfx.coin();started=true;
   const t=$('title');t.classList.add('gone');setTimeout(()=>{t.hidden=true},motionOK()?450:0);
   refresh();if(!greeted){greeted=true;greet()}
