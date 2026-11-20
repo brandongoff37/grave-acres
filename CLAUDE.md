@@ -35,7 +35,7 @@ It installs to the home screen on iPhone (Safari → Share → Add to Home Scree
    - in `index.html`: `art.js?v=N` and `game.js?v=N`
    - in `sw.js`: `CACHE = 'grave-acres-vN'` and the same `?v=N` entries in `FILES`
    `npm run bump` does all of this in one step.
-   (Current: **v13**.)
+   (Current: **v14**.)
 2. **Never break old saves.** Saves live in `localStorage` under `graveacres.v1`. New fields go in
    `fresh()` and are filled in by `migrate()` in `game.js`. Keep seed/zombie `id`s stable
    (`radish`, `corn`, `pump`, `egg`, `mush`, `shamb`, `sprint`, `brute`, `mummy`, `vamp`).
@@ -44,6 +44,7 @@ It installs to the home screen on iPhone (Safari → Share → Add to Home Scree
 4. **Art must be original** and follow `docs/ART-GUIDE.md`. Crops are spooky but PG.
 5. Keep it a single static site: no build step, no server, no paid services.
    The 3D look is plain CSS (`rotateX`, `perspective`, `preserve-3d`), so don't add a 3D library.
+   Phones are played in **landscape** first: the landscape layout lives in the `@media (orientation:landscape) and (max-height:600px)` block in `index.html` (tab rail on the left, graveyard 5 across in the middle, side column on the right). Portrait still has to work. `npm test` checks both.
    The farm is drawn as a graveyard (see "The graveyard" in `docs/DESIGN.md`). `#field` must hold exactly the 20 plot buttons and nothing else.
    An element with `overflow:hidden`, `opacity` below 1 or a `filter` flattens the 3D inside it, so put those on the innermost picture, not on a plot or fighter wrapper.
 6. Commit with clear messages and push to `main`. The live site updates in about a minute.

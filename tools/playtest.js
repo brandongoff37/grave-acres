@@ -65,6 +65,18 @@ const { launch, GAME, OUT } = require('./browser');
   const html = fs.readFileSync(__dirname + '/../index.html', 'utf8'), sw = fs.readFileSync(__dirname + '/../sw.js', 'utf8');
   const vs = [...html.matchAll(/\?v=(\d+)/g), ...sw.matchAll(/\?v=(\d+)/g), ...sw.matchAll(/grave-acres-v(\d+)/g)].map(m => m[1]);
   ok(vs.length >= 5 && new Set(vs).size === 1, 'version numbers match everywhere (v' + [...new Set(vs)].join(', v') + ')');
+  // Landscape is the main way to play on a phone: the whole graveyard and the Harvest button must fit with no scrolling
+  for (const [w, h] of [[844, 390], [667, 375]]) {
+    const lp = await (await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true })).newPage();
+    lp.on('pageerror', e => errs.push(e.message));
+    await lp.goto(GAME); await lp.evaluate(() => { S.seen = 1; S.lastDay = today(); save(); }); await lp.reload(); await lp.waitForTimeout(400);
+    await lp.click('#playBtn'); await lp.waitForTimeout(800);
+    const fit = await lp.evaluate(() => { const ps = [...document.querySelectorAll('#field .plot')].map(e => e.getBoundingClientRect()), hb = document.getElementById('harvestAll').getBoundingClientRect();
+      return { bottom: Math.max(...ps.map(r => r.bottom)), minW: Math.min(...ps.map(r => r.width)), hb: hb.bottom, cols: getComputedStyle(document.getElementById('field')).gridTemplateColumns.split(' ').length, over: document.documentElement.scrollWidth - innerWidth }; });
+    ok(fit.cols === 5 && fit.bottom <= h && fit.hb <= h && fit.over === 0 && fit.minW >= 50, 'landscape ' + w + 'x' + h + ': graveyard fits, 5 graves across (' + JSON.stringify(fit) + ')');
+    if (w === 844) await lp.screenshot({ path: OUT + '/10-landscape.png' });
+    await lp.close();
+  }
   ok(errs.length === 0, 'no page errors ' + (errs.length ? JSON.stringify(errs) : ''));
   await b.close();
   if (process.exitCode !== 1 && errs.length) process.exitCode = 1;
